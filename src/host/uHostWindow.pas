@@ -1,4 +1,4 @@
-unit uHostWindow;
+﻿unit uHostWindow;
 
 { Ventana del cartel sin VCL: ventana Win32 por capas, DIB premultiplicado,
   UpdateLayeredWindow y temporizador. Solo pinta el cartel. }
@@ -166,6 +166,7 @@ begin
 
   Estilo.Texto := FAjustes.Texto;
   Estilo.Color := FAjustes.Color;
+  Estilo.ColorTexto := FAjustes.ColorTexto;
   Estilo.OpacidadPanel := FAjustes.OpacidadPanel;
   Estilo.OpacidadLetra := FAjustes.OpacidadLetra;
   Estilo.Esquinas := FAjustes.Esquinas;

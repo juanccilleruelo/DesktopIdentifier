@@ -10,19 +10,20 @@ uses
   Winapi.GDIPAPI, Winapi.GDIPOBJ, uUtils, uBadgeRender;
 
 procedure DibujarBanda(G: TGPGraphics; const Area: TGPRectF; Color: TRgb;
-  const Texto: string; ColorTexto: TRgb);
+  const Texto: string; ColorTexto: TRgb; const Alineacion: string);
 
 implementation
 
 procedure DibujarBanda(G: TGPGraphics; const Area: TGPRectF; Color: TRgb;
-  const Texto: string; ColorTexto: TRgb);
+  const Texto: string; ColorTexto: TRgb; const Alineacion: string);
 var
   Br: TGPLinearGradientBrush;
   Pen: TGPPen;
   Fnt: TGPFont;
   Fmt: TGPStringFormat;
   Pincel: TGPSolidBrush;
-  FontSize, Margen: Single;
+  FontSize, Margen, X, AnchoTexto: Single;
+  AlineacionGdi: StringAlignment;
 begin
   if (Area.Width <= 0) or (Area.Height <= 0) then
     Exit;
@@ -48,17 +49,36 @@ begin
     Exit;
 
   FontSize := Max(12, Area.Height * 0.58);
+  Margen := Max(12, Area.Height * 0.55);
+  if SameText(Alineacion, 'centro') then
+  begin
+    AlineacionGdi := StringAlignmentCenter;
+    X := Area.X;
+    AnchoTexto := Area.Width;
+  end
+  else if SameText(Alineacion, 'izquierda') then
+  begin
+    AlineacionGdi := StringAlignmentNear;
+    X := Area.X + Margen;
+    AnchoTexto := Area.Width - Margen * 2;
+  end
+  else
+  begin
+    AlineacionGdi := StringAlignmentFar;
+    X := Area.X;
+    AnchoTexto := Area.Width - Margen;
+  end;
+
   Fnt := TGPFont.Create('Segoe UI', FontSize, FontStyleBold, UnitPixel);
   try
     Fmt := TGPStringFormat.Create;
     try
-      Fmt.SetAlignment(StringAlignmentFar);
+      Fmt.SetAlignment(AlineacionGdi);
       Fmt.SetLineAlignment(StringAlignmentCenter);
-      Margen := Max(12, Area.Height * 0.55);
       Pincel := TGPSolidBrush.Create(ArgbDe(ColorTexto, 205));
       try
         G.DrawString(WideString(Texto), Length(Texto), Fnt,
-          RF(Area.X, Area.Y, Area.Width - Margen, Area.Height), Fmt, Pincel);
+          RF(X, Area.Y, AnchoTexto, Area.Height), Fmt, Pincel);
       finally
         Pincel.Free;
       end;

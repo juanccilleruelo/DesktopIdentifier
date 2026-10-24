@@ -34,6 +34,7 @@ type
     BandaAlto: Double;
     BandaTexto: string;
     BandaColorTexto: TRgb;
+    BandaAlineacion: string;
   end;
 
 function AjustesPorDefecto: TSettings;
@@ -67,6 +68,7 @@ begin
   Result.BandaAlto := 0.08;
   Result.BandaTexto := '';
   Result.BandaColorTexto := RgbBlanco;
+  Result.BandaAlineacion := 'derecha';
 end;
 
 function ColorPorTexto(const Texto: string): TRgb;
@@ -104,6 +106,12 @@ begin
   Result.BandaTexto := Trim(Result.BandaTexto);
   if Length(Result.BandaTexto) > 20 then
     Result.BandaTexto := Copy(Result.BandaTexto, 1, 20);
+
+  Result.BandaAlineacion := LowerCase(Trim(Result.BandaAlineacion));
+  if (Result.BandaAlineacion <> 'derecha') and
+     (Result.BandaAlineacion <> 'centro') and
+     (Result.BandaAlineacion <> 'izquierda') then
+    Result.BandaAlineacion := 'derecha';
 end;
 
 { Lee el archivo completo respetando el BOM (UTF-8 / UTF-16) y, si no hay
@@ -285,7 +293,9 @@ var
         BandaColorLeida := True;
       end
       else if (Sec = 'banda') and (K = 'color_texto') then
-        Result.BandaColorTexto := HexARgb(V, Result.BandaColorTexto);
+        Result.BandaColorTexto := HexARgb(V, Result.BandaColorTexto)
+      else if (K = 'banda_alineacion') or ((Sec = 'banda') and (K = 'alineacion')) then
+        Result.BandaAlineacion := Trim(V);
     end;
   end;
 
@@ -379,6 +389,7 @@ begin
   T := T + 'alto=' + FloatToStr(A.BandaAlto, FormatoInv) + sLineBreak;
   T := T + 'texto=' + A.BandaTexto + sLineBreak;
   T := T + 'color_texto=' + RgbAHex(A.BandaColorTexto) + sLineBreak;
+  T := T + 'alineacion=' + A.BandaAlineacion + sLineBreak;
 
   Result := EscribirTextoAtomico(Archivo, T);
 end;

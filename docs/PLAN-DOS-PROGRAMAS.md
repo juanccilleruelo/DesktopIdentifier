@@ -1,6 +1,6 @@
 # Plan: separar Distintive VM en dos programas
 
-**Estado:** fase 1 implementada (ver [FASE-1.md](FASE-1.md))
+**Estado:** fases 1 y 2 implementadas (ver [FASE-1.md](FASE-1.md) y [FASE-2.md](FASE-2.md))
 **Fecha:** 24/10/2026
 **Proyecto:** DesktopIdentifier (Delphi 12, Win32)
 
@@ -126,8 +126,9 @@ fuente=Segoe UI
 activa=1
 color=#1473E6
 alto=0.08
-texto=A
+texto=
 color_texto=#FFFFFF
+alineacion=derecha
 ```
 
 | Clave | Tipo | Rango / valores | Notas |
@@ -148,6 +149,7 @@ color_texto=#FFFFFF
 | `banda.alto` | real | 0,02–0,20 | Fracción de la altura de pantalla |
 | `banda.texto` | texto | 0–20 caracteres | Vacío = sin texto |
 | `banda.color_texto` | color | `#RRGGBB` | Por defecto blanco |
+| `banda.alineacion` | texto | `derecha`, `centro`, `izquierda` | Posición del texto |
 
 ### 4.3 Validación y compatibilidad
 
@@ -375,11 +377,13 @@ Tareas:
 
 **Criterios de aceptación:**
 
-- [ ] Se puede cambiar el color y la altura de la banda y se ve al aplicar.
-- [ ] Se puede poner texto distinto en la banda y en el cartel.
-- [ ] Los cambios se guardan en el `.ini` y sobreviven al reinicio.
-- [ ] La vista previa coincide con el resultado real.
-- [ ] Valores fuera de rango se recortan sin romper.
+- [x] Se puede cambiar el color y la altura de la banda y se ve al aplicar.
+- [x] Se puede poner texto distinto en la banda y en el cartel.
+- [x] Los cambios se guardan en el `.ini` y sobreviven al reinicio.
+- [x] La vista previa coincide con el resultado real.
+- [x] Valores fuera de rango se recortan sin romper.
+
+Implementada; el detalle y las evidencias están en [FASE-2.md](FASE-2.md).
 
 ### Fase 3 — Pulido
 
@@ -472,5 +476,6 @@ La propuesta era:
 4. La banda la genera el configurador; el host solo pinta el cartel.
 5. Fase 1 = separar sin cambiar comportamiento; fase 2 = color/altura/textos; fase 3 = pulido.
 
-La fase 1 se acometió con estas decisiones; el resultado está en
-[FASE-1.md](FASE-1.md).
+La fase 1 se acometió con estas decisiones y la fase 2 añadió las opciones de
+cartel y banda; el resultado está en [FASE-1.md](FASE-1.md) y
+[FASE-2.md](FASE-2.md). Queda la fase 3 (versión, reparación y pulido).

@@ -1,4 +1,4 @@
-unit uConfigForm;
+﻿unit uConfigForm;
 
 { Ventana de configuracion (VCL, toda en codigo). }
 
@@ -18,45 +18,89 @@ type
     FHeader: TPanel;
     FLblTitulo: TLabel;
     FLblSub: TLabel;
-    FRbA: TRadioButton;
-    FRbB: TRadioButton;
-    FSwatch: TPanel;
-    FLblHex: TLabel;
-    FBtnColor: TButton;
+    FPages: TPageControl;
+    FTabCartel: TTabSheet;
+    FTabBanda: TTabSheet;
+    // Cartel
+    FEdTexto: TEdit;
+    FSwCartel: TPanel;
+    FLblCartelHex: TLabel;
+    FBtnCartelColor: TButton;
+    FSwTexto: TPanel;
+    FLblTextoHex: TLabel;
+    FBtnTextoColor: TButton;
     FSeTamano: TSpinEdit;
     FTbOpacidad: TTrackBar;
-    FLblPorc: TLabel;
+    FLblOpacidad: TLabel;
+    FTbOpacidadTexto: TTrackBar;
+    FLblOpacidadTexto: TLabel;
+    FTbEsquinas: TTrackBar;
+    FLblEsquinas: TLabel;
+    FSeMargenDer: TSpinEdit;
+    FSeMargenInf: TSpinEdit;
+    // Banda
     FChkBanda: TCheckBox;
-    FChkLetraBanda: TCheckBox;
+    FSwBanda: TPanel;
+    FLblBandaHex: TLabel;
+    FBtnBandaColor: TButton;
+    FSwTextoBanda: TPanel;
+    FLblTextoBandaHex: TLabel;
+    FBtnTextoBandaColor: TButton;
+    FTbAlto: TTrackBar;
+    FLblAlto: TLabel;
+    FEdTextoBanda: TEdit;
+    FCbAlineacion: TComboBox;
+    // Vista previa y estado
     FPbPreview: TPaintBox;
     FLblInstalacion: TLabel;
     FLblEstado: TLabel;
     FBtnInstalar: TButton;
     FBtnAplicar: TButton;
     FBtnDesinstalar: TButton;
+    FBtnReaplicar: TButton;
     FBtnCerrarCartel: TButton;
     FBtnCerrar: TButton;
+    // Estado
     FColor: TRgb;
+    FColorTexto: TRgb;
+    FColorBanda: TRgb;
+    FColorTextoBanda: TRgb;
     FColorPersonalizado: Boolean;
     FAjustes: TSettings;
     procedure CrearControles;
+    procedure CrearTabCartel;
+    procedure CrearTabBanda;
     procedure ActualizarVista;
     procedure PintarVista(Sender: TObject);
-    procedure CambiarColor(Sender: TObject);
-    procedure LetraCambiada(Sender: TObject);
+    procedure TextoCambiado(Sender: TObject);
+    procedure CambiarColorCartel(Sender: TObject);
+    procedure CambiarColorTexto(Sender: TObject);
+    procedure CambiarColorBanda(Sender: TObject);
+    procedure CambiarColorTextoBanda(Sender: TObject);
     procedure CambioTamano(Sender: TObject);
     procedure CambioOpacidad(Sender: TObject);
+    procedure CambioOpacidadTexto(Sender: TObject);
+    procedure CambioEsquinas(Sender: TObject);
+    procedure CambioMargenes(Sender: TObject);
     procedure CambioBanda(Sender: TObject);
+    procedure CambioAlto(Sender: TObject);
+    procedure CambioTextoBanda(Sender: TObject);
     procedure InstalarClick(Sender: TObject);
     procedure AplicarClick(Sender: TObject);
+    procedure ReaplicarClick(Sender: TObject);
     procedure DesinstalarClick(Sender: TObject);
     procedure CerrarCartelClick(Sender: TObject);
     procedure CerrarVentana(Sender: TObject);
+    procedure AplicarDesdeUi(const MensajeOk: string);
     procedure RefrescarEstadoInstalacion;
     procedure MostrarMensaje(const Texto: string; EsError: Boolean);
-    function LetraSeleccionada: string;
+    function TextoUi: string;
+    function TituloVentana: string;
     function AjustesDeUi: TSettings;
     function EstiloActual: TBadgeStyle;
+    function ElegirColor(var C: TRgb): Boolean;
+    function AlineacionSeleccionada: string;
+    function ColorAutomatico: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -76,22 +120,34 @@ begin
   Result := RgbOf(Byte(V and $FF), Byte((V shr 8) and $FF), Byte((V shr 16) and $FF));
 end;
 
+function IndiceDeAlineacion(const S: string): Integer;
+begin
+  if SameText(S, 'centro') then
+    Result := 1
+  else if SameText(S, 'izquierda') then
+    Result := 2
+  else
+    Result := 0;
+end;
+
 constructor TConfigForm.Create(AOwner: TComponent);
 begin
   inherited CreateNew(AOwner, 0);
 
   Caption := 'DesktopIdentifier - Configuración';
   BorderStyle := bsDialog;
-  ClientWidth := 540;
-  ClientHeight := 676;
+  ClientWidth := 620;
+  ClientHeight := 764;
   Position := poScreenCenter;
   Font.Name := 'Segoe UI';
   Font.Size := 9;
 
   FAjustes := AjustesEnUso;
   FColor := FAjustes.Color;
-  FColorPersonalizado := not SameText(RgbAHex(FColor),
-    RgbAHex(ColorPorTexto(FAjustes.Texto)));
+  FColorTexto := FAjustes.ColorTexto;
+  FColorBanda := FAjustes.BandaColor;
+  FColorTextoBanda := FAjustes.BandaColorTexto;
+  FColorPersonalizado := not ColorAutomatico;
 
   CrearControles;
   ActualizarVista;
@@ -99,9 +155,36 @@ begin
   MostrarMensaje('El cartel no bloquea los clics: puedes pulsar y escribir a través de él.', False);
 end;
 
-procedure TConfigForm.CrearControles;
+function TConfigForm.ColorAutomatico: Boolean;
 var
-  L: TLabel;
+  T: string;
+begin
+  T := UpperCase(Trim(FAjustes.Texto));
+  Result := ((T = 'A') or (T = 'B')) and
+    SameText(RgbAHex(FAjustes.Color), RgbAHex(ColorPorTexto(T)));
+end;
+
+function TConfigForm.TextoUi: string;
+begin
+  Result := Trim(FEdTexto.Text);
+end;
+
+function TConfigForm.TituloVentana: string;
+var
+  T: string;
+begin
+  T := TextoUi;
+  if T = '' then
+    T := 'A';
+  if SameText(T, 'A') then
+    Result := 'Máquina A'
+  else if SameText(T, 'B') then
+    Result := 'Máquina B'
+  else
+    Result := T;
+end;
+
+procedure TConfigForm.CrearControles;
 begin
   FHeader := TPanel.Create(Self);
   FHeader.Parent := Self;
@@ -130,118 +213,26 @@ begin
   FLblSub.Transparent := True;
   FLblSub.SetBounds(21, 38, 460, 18);
 
-  L := TLabel.Create(Self);
-  L.Parent := Self;
-  L.Caption := 'Esta máquina es:';
-  L.SetBounds(24, 80, 200, 18);
+  FPages := TPageControl.Create(Self);
+  FPages.Parent := Self;
+  FPages.SetBounds(16, 76, 588, 336);
 
-  FRbA := TRadioButton.Create(Self);
-  FRbA.Parent := Self;
-  FRbA.Caption := 'Máquina A';
-  FRbA.Font.Name := 'Segoe UI';
-  FRbA.Font.Size := 11;
-  FRbA.SetBounds(26, 102, 110, 24);
-  FRbA.Checked := (FAjustes.Texto = '') or (UpCase(FAjustes.Texto[1]) <> 'B');
-  FRbA.OnClick := LetraCambiada;
+  FTabCartel := TTabSheet.Create(Self);
+  FTabCartel.PageControl := FPages;
+  FTabCartel.Caption := 'Cartel';
 
-  FRbB := TRadioButton.Create(Self);
-  FRbB.Parent := Self;
-  FRbB.Caption := 'Máquina B';
-  FRbB.Font.Name := 'Segoe UI';
-  FRbB.Font.Size := 11;
-  FRbB.SetBounds(160, 102, 110, 24);
-  FRbB.Checked := (FAjustes.Texto <> '') and (UpCase(FAjustes.Texto[1]) = 'B');
-  FRbB.OnClick := LetraCambiada;
+  FTabBanda := TTabSheet.Create(Self);
+  FTabBanda.PageControl := FPages;
+  FTabBanda.Caption := 'Banda';
 
-  L := TLabel.Create(Self);
-  L.Parent := Self;
-  L.Caption := 'Color de la banda y del cartel:';
-  L.SetBounds(24, 138, 300, 18);
+  CrearTabCartel;
+  CrearTabBanda;
 
-  FSwatch := TPanel.Create(Self);
-  FSwatch.Parent := Self;
-  FSwatch.SetBounds(24, 160, 54, 30);
-  FSwatch.BevelOuter := bvNone;
-  FSwatch.Color := RgbATColor(FColor);
-  FSwatch.StyleElements := [];
-
-  FLblHex := TLabel.Create(Self);
-  FLblHex.Parent := Self;
-  FLblHex.Caption := RgbAHex(FColor);
-  FLblHex.Font.Name := 'Consolas';
-  FLblHex.Font.Size := 10;
-  FLblHex.Font.Style := [fsBold];
-  FLblHex.SetBounds(88, 166, 80, 20);
-
-  FBtnColor := TButton.Create(Self);
-  FBtnColor.Parent := Self;
-  FBtnColor.Caption := 'Cambiar color...';
-  FBtnColor.SetBounds(176, 158, 120, 32);
-  FBtnColor.OnClick := CambiarColor;
-
-  L := TLabel.Create(Self);
-  L.Parent := Self;
-  L.Caption := 'Tamaño del cartel:';
-  L.SetBounds(24, 208, 150, 18);
-
-  FSeTamano := TSpinEdit.Create(Self);
-  FSeTamano.Parent := Self;
-  FSeTamano.MinValue := 90;
-  FSeTamano.MaxValue := 280;
-  FSeTamano.Increment := 10;
-  FSeTamano.Value := FAjustes.Tamano;
-  FSeTamano.SetBounds(150, 204, 70, 24);
-  FSeTamano.OnChange := CambioTamano;
-
-  L := TLabel.Create(Self);
-  L.Parent := Self;
-  L.Caption := 'px';
-  L.SetBounds(226, 208, 30, 18);
-
-  L := TLabel.Create(Self);
-  L.Parent := Self;
-  L.Caption := 'Transparencia del panel:';
-  L.SetBounds(24, 242, 200, 18);
-
-  FTbOpacidad := TTrackBar.Create(Self);
-  FTbOpacidad.Parent := Self;
-  FTbOpacidad.Min := 10;
-  FTbOpacidad.Max := 60;
-  FTbOpacidad.Frequency := 5;
-  FTbOpacidad.SetBounds(22, 260, 330, 36);
-  FTbOpacidad.Position := Round(FAjustes.OpacidadPanel * 100);
-  FTbOpacidad.OnChange := CambioOpacidad;
-
-  FLblPorc := TLabel.Create(Self);
-  FLblPorc.Parent := Self;
-  FLblPorc.Caption := IntToStr(FTbOpacidad.Position) + ' %';
-  FLblPorc.Font.Style := [fsBold];
-  FLblPorc.Font.Size := 10;
-  FLblPorc.SetBounds(360, 266, 50, 20);
-
-  L := TLabel.Create(Self);
-  L.Parent := Self;
-  L.Caption := '(más % = más opaco)';
-  L.Font.Color := RGB(110, 110, 110);
-  L.SetBounds(402, 268, 130, 18);
-
-  FChkBanda := TCheckBox.Create(Self);
-  FChkBanda.Parent := Self;
-  FChkBanda.Caption := 'Poner la banda de color en el escritorio (fondo de pantalla)';
-  FChkBanda.SetBounds(24, 306, 460, 22);
-  FChkBanda.Checked := FAjustes.BandaActiva;
-  FChkBanda.OnClick := CambioBanda;
-
-  FChkLetraBanda := TCheckBox.Create(Self);
-  FChkLetraBanda.Parent := Self;
-  FChkLetraBanda.Caption := 'Mostrar también la letra en la banda';
-  FChkLetraBanda.SetBounds(24, 332, 400, 22);
-  FChkLetraBanda.Checked := FAjustes.BandaTexto <> '';
-  FChkLetraBanda.OnClick := CambioBanda;
+  FPages.ActivePage := FTabCartel;
 
   FPbPreview := TPaintBox.Create(Self);
   FPbPreview.Parent := Self;
-  FPbPreview.SetBounds(24, 362, 492, 156);
+  FPbPreview.SetBounds(16, 422, 588, 180);
   FPbPreview.OnPaint := PintarVista;
 
   FLblInstalacion := TLabel.Create(Self);
@@ -249,89 +240,439 @@ begin
   FLblInstalacion.Caption := 'Sin instalar';
   FLblInstalacion.Font.Style := [fsBold];
   FLblInstalacion.AutoSize := False;
-  FLblInstalacion.SetBounds(24, 526, 492, 18);
+  FLblInstalacion.SetBounds(16, 610, 588, 18);
 
   FLblEstado := TLabel.Create(Self);
   FLblEstado.Parent := Self;
   FLblEstado.Caption := '';
   FLblEstado.WordWrap := True;
   FLblEstado.AutoSize := False;
-  FLblEstado.SetBounds(24, 546, 492, 38);
+  FLblEstado.SetBounds(16, 630, 588, 38);
 
   FBtnInstalar := TButton.Create(Self);
   FBtnInstalar.Parent := Self;
   FBtnInstalar.Caption := 'Instalar';
-  FBtnInstalar.SetBounds(24, 592, 110, 32);
+  FBtnInstalar.SetBounds(16, 676, 110, 32);
   FBtnInstalar.OnClick := InstalarClick;
 
   FBtnAplicar := TButton.Create(Self);
   FBtnAplicar.Parent := Self;
   FBtnAplicar.Caption := 'Aplicar';
-  FBtnAplicar.SetBounds(144, 592, 100, 32);
+  FBtnAplicar.SetBounds(136, 676, 100, 32);
   FBtnAplicar.OnClick := AplicarClick;
 
   FBtnDesinstalar := TButton.Create(Self);
   FBtnDesinstalar.Parent := Self;
   FBtnDesinstalar.Caption := 'Desinstalar';
-  FBtnDesinstalar.SetBounds(254, 592, 110, 32);
+  FBtnDesinstalar.SetBounds(246, 676, 110, 32);
   FBtnDesinstalar.OnClick := DesinstalarClick;
+
+  FBtnReaplicar := TButton.Create(Self);
+  FBtnReaplicar.Parent := Self;
+  FBtnReaplicar.Caption := 'Reaplicar banda';
+  FBtnReaplicar.SetBounds(366, 676, 140, 32);
+  FBtnReaplicar.OnClick := ReaplicarClick;
 
   FBtnCerrarCartel := TButton.Create(Self);
   FBtnCerrarCartel.Parent := Self;
   FBtnCerrarCartel.Caption := 'Cerrar el cartel';
-  FBtnCerrarCartel.SetBounds(374, 592, 142, 32);
+  FBtnCerrarCartel.SetBounds(16, 716, 142, 32);
   FBtnCerrarCartel.OnClick := CerrarCartelClick;
 
   FBtnCerrar := TButton.Create(Self);
   FBtnCerrar.Parent := Self;
   FBtnCerrar.Caption := 'Cerrar';
   FBtnCerrar.Cancel := True;
-  FBtnCerrar.SetBounds(424, 632, 90, 32);
+  FBtnCerrar.SetBounds(514, 716, 90, 32);
   FBtnCerrar.OnClick := CerrarVentana;
 end;
 
-function TConfigForm.LetraSeleccionada: string;
+procedure TConfigForm.CrearTabCartel;
+var
+  L: TLabel;
 begin
-  if FRbB.Checked then
-    Result := 'B'
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'Texto del cartel:';
+  L.SetBounds(8, 17, 110, 18);
+
+  FEdTexto := TEdit.Create(Self);
+  FEdTexto.Parent := FTabCartel;
+  FEdTexto.MaxLength := 4;
+  FEdTexto.Text := FAjustes.Texto;
+  FEdTexto.SetBounds(122, 13, 80, 24);
+  FEdTexto.OnChange := TextoCambiado;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := '1–4 caracteres';
+  L.Font.Color := RGB(110, 110, 110);
+  L.SetBounds(210, 17, 120, 18);
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'Color del panel:';
+  L.SetBounds(8, 51, 110, 18);
+
+  FSwCartel := TPanel.Create(Self);
+  FSwCartel.Parent := FTabCartel;
+  FSwCartel.SetBounds(122, 47, 48, 26);
+  FSwCartel.BevelOuter := bvNone;
+  FSwCartel.Color := RgbATColor(FColor);
+  FSwCartel.StyleElements := [];
+
+  FLblCartelHex := TLabel.Create(Self);
+  FLblCartelHex.Parent := FTabCartel;
+  FLblCartelHex.Caption := RgbAHex(FColor);
+  FLblCartelHex.Font.Name := 'Consolas';
+  FLblCartelHex.Font.Size := 10;
+  FLblCartelHex.Font.Style := [fsBold];
+  FLblCartelHex.SetBounds(176, 51, 70, 20);
+
+  FBtnCartelColor := TButton.Create(Self);
+  FBtnCartelColor.Parent := FTabCartel;
+  FBtnCartelColor.Caption := 'Cambiar...';
+  FBtnCartelColor.SetBounds(250, 45, 110, 28);
+  FBtnCartelColor.OnClick := CambiarColorCartel;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'Color del texto:';
+  L.SetBounds(8, 85, 110, 18);
+
+  FSwTexto := TPanel.Create(Self);
+  FSwTexto.Parent := FTabCartel;
+  FSwTexto.SetBounds(122, 81, 48, 26);
+  FSwTexto.BevelOuter := bvNone;
+  FSwTexto.Color := RgbATColor(FColorTexto);
+  FSwTexto.StyleElements := [];
+
+  FLblTextoHex := TLabel.Create(Self);
+  FLblTextoHex.Parent := FTabCartel;
+  FLblTextoHex.Caption := RgbAHex(FColorTexto);
+  FLblTextoHex.Font.Name := 'Consolas';
+  FLblTextoHex.Font.Size := 10;
+  FLblTextoHex.Font.Style := [fsBold];
+  FLblTextoHex.SetBounds(176, 85, 70, 20);
+
+  FBtnTextoColor := TButton.Create(Self);
+  FBtnTextoColor.Parent := FTabCartel;
+  FBtnTextoColor.Caption := 'Cambiar...';
+  FBtnTextoColor.SetBounds(250, 79, 110, 28);
+  FBtnTextoColor.OnClick := CambiarColorTexto;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'Tamaño:';
+  L.SetBounds(8, 119, 110, 18);
+
+  FSeTamano := TSpinEdit.Create(Self);
+  FSeTamano.Parent := FTabCartel;
+  FSeTamano.MinValue := 90;
+  FSeTamano.MaxValue := 280;
+  FSeTamano.Increment := 10;
+  FSeTamano.Value := FAjustes.Tamano;
+  FSeTamano.SetBounds(122, 115, 70, 24);
+  FSeTamano.OnChange := CambioTamano;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'px';
+  L.SetBounds(198, 119, 30, 18);
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'Opacidad del panel:';
+  L.SetBounds(8, 153, 140, 18);
+
+  FTbOpacidad := TTrackBar.Create(Self);
+  FTbOpacidad.Parent := FTabCartel;
+  FTbOpacidad.Min := 10;
+  FTbOpacidad.Max := 60;
+  FTbOpacidad.Frequency := 5;
+  FTbOpacidad.Position := Round(FAjustes.OpacidadPanel * 100);
+  FTbOpacidad.SetBounds(160, 149, 220, 30);
+  FTbOpacidad.OnChange := CambioOpacidad;
+
+  FLblOpacidad := TLabel.Create(Self);
+  FLblOpacidad.Parent := FTabCartel;
+  FLblOpacidad.Caption := IntToStr(FTbOpacidad.Position) + ' %';
+  FLblOpacidad.Font.Style := [fsBold];
+  FLblOpacidad.SetBounds(388, 155, 50, 18);
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'Opacidad del texto:';
+  L.SetBounds(8, 187, 140, 18);
+
+  FTbOpacidadTexto := TTrackBar.Create(Self);
+  FTbOpacidadTexto.Parent := FTabCartel;
+  FTbOpacidadTexto.Min := 30;
+  FTbOpacidadTexto.Max := 100;
+  FTbOpacidadTexto.Frequency := 5;
+  FTbOpacidadTexto.Position := Round(FAjustes.OpacidadLetra * 100);
+  FTbOpacidadTexto.SetBounds(160, 183, 220, 30);
+  FTbOpacidadTexto.OnChange := CambioOpacidadTexto;
+
+  FLblOpacidadTexto := TLabel.Create(Self);
+  FLblOpacidadTexto.Parent := FTabCartel;
+  FLblOpacidadTexto.Caption := IntToStr(FTbOpacidadTexto.Position) + ' %';
+  FLblOpacidadTexto.Font.Style := [fsBold];
+  FLblOpacidadTexto.SetBounds(388, 189, 50, 18);
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'Radio de las esquinas:';
+  L.SetBounds(8, 221, 150, 18);
+
+  FTbEsquinas := TTrackBar.Create(Self);
+  FTbEsquinas.Parent := FTabCartel;
+  FTbEsquinas.Min := 0;
+  FTbEsquinas.Max := 50;
+  FTbEsquinas.Frequency := 5;
+  FTbEsquinas.Position := Round(FAjustes.Esquinas * 100);
+  FTbEsquinas.SetBounds(160, 217, 220, 30);
+  FTbEsquinas.OnChange := CambioEsquinas;
+
+  FLblEsquinas := TLabel.Create(Self);
+  FLblEsquinas.Parent := FTabCartel;
+  FLblEsquinas.Caption := IntToStr(FTbEsquinas.Position) + ' %';
+  FLblEsquinas.Font.Style := [fsBold];
+  FLblEsquinas.SetBounds(388, 223, 50, 18);
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'Márgenes (der./inf.):';
+  L.SetBounds(8, 255, 150, 18);
+
+  FSeMargenDer := TSpinEdit.Create(Self);
+  FSeMargenDer.Parent := FTabCartel;
+  FSeMargenDer.MinValue := 0;
+  FSeMargenDer.MaxValue := 1000;
+  FSeMargenDer.Increment := 5;
+  FSeMargenDer.Value := FAjustes.MargenDerecha;
+  FSeMargenDer.SetBounds(160, 251, 60, 24);
+  FSeMargenDer.OnChange := CambioMargenes;
+
+  FSeMargenInf := TSpinEdit.Create(Self);
+  FSeMargenInf.Parent := FTabCartel;
+  FSeMargenInf.MinValue := 0;
+  FSeMargenInf.MaxValue := 1000;
+  FSeMargenInf.Increment := 5;
+  FSeMargenInf.Value := FAjustes.MargenInferior;
+  FSeMargenInf.SetBounds(230, 251, 60, 24);
+  FSeMargenInf.OnChange := CambioMargenes;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabCartel;
+  L.Caption := 'px';
+  L.SetBounds(298, 255, 30, 18);
+end;
+
+procedure TConfigForm.CrearTabBanda;
+var
+  L: TLabel;
+begin
+  FChkBanda := TCheckBox.Create(Self);
+  FChkBanda.Parent := FTabBanda;
+  FChkBanda.Caption := 'Poner la banda de color en el escritorio (fondo de pantalla)';
+  FChkBanda.SetBounds(8, 12, 520, 22);
+  FChkBanda.Checked := FAjustes.BandaActiva;
+  FChkBanda.OnClick := CambioBanda;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabBanda;
+  L.Caption := 'Color de la banda:';
+  L.SetBounds(8, 49, 140, 18);
+
+  FSwBanda := TPanel.Create(Self);
+  FSwBanda.Parent := FTabBanda;
+  FSwBanda.SetBounds(150, 45, 48, 26);
+  FSwBanda.BevelOuter := bvNone;
+  FSwBanda.Color := RgbATColor(FColorBanda);
+  FSwBanda.StyleElements := [];
+
+  FLblBandaHex := TLabel.Create(Self);
+  FLblBandaHex.Parent := FTabBanda;
+  FLblBandaHex.Caption := RgbAHex(FColorBanda);
+  FLblBandaHex.Font.Name := 'Consolas';
+  FLblBandaHex.Font.Size := 10;
+  FLblBandaHex.Font.Style := [fsBold];
+  FLblBandaHex.SetBounds(204, 49, 70, 20);
+
+  FBtnBandaColor := TButton.Create(Self);
+  FBtnBandaColor.Parent := FTabBanda;
+  FBtnBandaColor.Caption := 'Cambiar...';
+  FBtnBandaColor.SetBounds(278, 43, 110, 28);
+  FBtnBandaColor.OnClick := CambiarColorBanda;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabBanda;
+  L.Caption := 'Color del texto:';
+  L.SetBounds(8, 83, 140, 18);
+
+  FSwTextoBanda := TPanel.Create(Self);
+  FSwTextoBanda.Parent := FTabBanda;
+  FSwTextoBanda.SetBounds(150, 79, 48, 26);
+  FSwTextoBanda.BevelOuter := bvNone;
+  FSwTextoBanda.Color := RgbATColor(FColorTextoBanda);
+  FSwTextoBanda.StyleElements := [];
+
+  FLblTextoBandaHex := TLabel.Create(Self);
+  FLblTextoBandaHex.Parent := FTabBanda;
+  FLblTextoBandaHex.Caption := RgbAHex(FColorTextoBanda);
+  FLblTextoBandaHex.Font.Name := 'Consolas';
+  FLblTextoBandaHex.Font.Size := 10;
+  FLblTextoBandaHex.Font.Style := [fsBold];
+  FLblTextoBandaHex.SetBounds(204, 83, 70, 20);
+
+  FBtnTextoBandaColor := TButton.Create(Self);
+  FBtnTextoBandaColor.Parent := FTabBanda;
+  FBtnTextoBandaColor.Caption := 'Cambiar...';
+  FBtnTextoBandaColor.SetBounds(278, 77, 110, 28);
+  FBtnTextoBandaColor.OnClick := CambiarColorTextoBanda;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabBanda;
+  L.Caption := 'Altura de la banda:';
+  L.SetBounds(8, 117, 140, 18);
+
+  FTbAlto := TTrackBar.Create(Self);
+  FTbAlto.Parent := FTabBanda;
+  FTbAlto.Min := 2;
+  FTbAlto.Max := 20;
+  FTbAlto.Frequency := 1;
+  FTbAlto.Position := Round(FAjustes.BandaAlto * 100);
+  FTbAlto.SetBounds(150, 113, 220, 30);
+  FTbAlto.OnChange := CambioAlto;
+
+  FLblAlto := TLabel.Create(Self);
+  FLblAlto.Parent := FTabBanda;
+  FLblAlto.Caption := IntToStr(FTbAlto.Position) + ' %';
+  FLblAlto.Font.Style := [fsBold];
+  FLblAlto.SetBounds(378, 119, 190, 18);
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabBanda;
+  L.Caption := 'Texto de la banda:';
+  L.SetBounds(8, 151, 140, 18);
+
+  FEdTextoBanda := TEdit.Create(Self);
+  FEdTextoBanda.Parent := FTabBanda;
+  FEdTextoBanda.MaxLength := 20;
+  FEdTextoBanda.Text := FAjustes.BandaTexto;
+  FEdTextoBanda.SetBounds(150, 147, 220, 24);
+  FEdTextoBanda.OnChange := CambioTextoBanda;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabBanda;
+  L.Caption := 'Vacío = sin texto';
+  L.Font.Color := RGB(110, 110, 110);
+  L.SetBounds(378, 151, 150, 18);
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabBanda;
+  L.Caption := 'Alineación del texto:';
+  L.SetBounds(8, 185, 140, 18);
+
+  FCbAlineacion := TComboBox.Create(Self);
+  FCbAlineacion.Parent := FTabBanda;
+  FCbAlineacion.Style := csDropDownList;
+  FCbAlineacion.Items.Add('Derecha');
+  FCbAlineacion.Items.Add('Centro');
+  FCbAlineacion.Items.Add('Izquierda');
+  FCbAlineacion.ItemIndex := IndiceDeAlineacion(FAjustes.BandaAlineacion);
+  FCbAlineacion.SetBounds(150, 181, 120, 24);
+  FCbAlineacion.OnChange := CambioBanda;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabBanda;
+  L.Caption := 'La banda es parte del fondo: Windows la repite en todos los monitores.';
+  L.Font.Color := RGB(110, 110, 110);
+  L.SetBounds(8, 221, 540, 18);
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabBanda;
+  L.Caption := 'Si cambias el fondo a mano, pulsa «Reaplicar banda».';
+  L.Font.Color := RGB(110, 110, 110);
+  L.SetBounds(8, 245, 540, 18);
+end;
+
+function TConfigForm.AlineacionSeleccionada: string;
+begin
+  case FCbAlineacion.ItemIndex of
+    1: Result := 'centro';
+    2: Result := 'izquierda';
   else
-    Result := 'A';
+    Result := 'derecha';
+  end;
 end;
 
 function TConfigForm.AjustesDeUi: TSettings;
 begin
   Result := FAjustes;
-  Result.Texto := LetraSeleccionada;
+  Result.Texto := TextoUi;
+  if Result.Texto = '' then
+    Result.Texto := 'A';
   Result.Color := FColor;
-  Result.BandaColor := FColor;
+  Result.ColorTexto := FColorTexto;
   Result.Tamano := FSeTamano.Value;
   Result.OpacidadPanel := FTbOpacidad.Position / 100;
+  Result.OpacidadLetra := FTbOpacidadTexto.Position / 100;
+  Result.Esquinas := FTbEsquinas.Position / 100;
+  Result.MargenDerecha := FSeMargenDer.Value;
+  Result.MargenInferior := FSeMargenInf.Value;
   Result.BandaActiva := FChkBanda.Checked;
-  if FChkLetraBanda.Checked then
-    Result.BandaTexto := LetraSeleccionada
-  else
-    Result.BandaTexto := '';
+  Result.BandaColor := FColorBanda;
+  Result.BandaAlto := FTbAlto.Position / 100;
+  Result.BandaTexto := Trim(FEdTextoBanda.Text);
+  Result.BandaColorTexto := FColorTextoBanda;
+  Result.BandaAlineacion := AlineacionSeleccionada;
   Result := AjustesValidos(Result);
 end;
 
 function TConfigForm.EstiloActual: TBadgeStyle;
+var
+  T: string;
 begin
-  Result.Texto := LetraSeleccionada;
+  T := TextoUi;
+  if T = '' then
+    T := '?';
+  Result.Texto := T;
   Result.Color := FColor;
+  Result.ColorTexto := FColorTexto;
   Result.OpacidadPanel := FTbOpacidad.Position / 100;
-  Result.OpacidadLetra := FAjustes.OpacidadLetra;
-  Result.Esquinas := FAjustes.Esquinas;
+  Result.OpacidadLetra := FTbOpacidadTexto.Position / 100;
+  Result.Esquinas := FTbEsquinas.Position / 100;
   Result.Fuente := FAjustes.Fuente;
   Result.Tamano := FSeTamano.Value;
 end;
 
 procedure TConfigForm.ActualizarVista;
+var
+  AltoPantalla: Integer;
+  AnchoPantalla: Integer;
 begin
   FHeader.Color := RgbATColor(FColor);
-  FSwatch.Color := RgbATColor(FColor);
-  FLblHex.Caption := RgbAHex(FColor);
-  FLblPorc.Caption := IntToStr(FTbOpacidad.Position) + ' %';
-  Caption := 'DesktopIdentifier - Configuración - Máquina ' + LetraSeleccionada;
+
+  FSwCartel.Color := RgbATColor(FColor);
+  FLblCartelHex.Caption := RgbAHex(FColor);
+  FSwTexto.Color := RgbATColor(FColorTexto);
+  FLblTextoHex.Caption := RgbAHex(FColorTexto);
+  FSwBanda.Color := RgbATColor(FColorBanda);
+  FLblBandaHex.Caption := RgbAHex(FColorBanda);
+  FSwTextoBanda.Color := RgbATColor(FColorTextoBanda);
+  FLblTextoBandaHex.Caption := RgbAHex(FColorTextoBanda);
+
+  FLblOpacidad.Caption := IntToStr(FTbOpacidad.Position) + ' %';
+  FLblOpacidadTexto.Caption := IntToStr(FTbOpacidadTexto.Position) + ' %';
+  FLblEsquinas.Caption := IntToStr(FTbEsquinas.Position) + ' %';
+  if not ResolucionPrimaria(AnchoPantalla, AltoPantalla) then
+    AltoPantalla := 1080;
+  FLblAlto.Caption := IntToStr(FTbAlto.Position) + ' % (≈' +
+    IntToStr(Round(AltoPantalla * FTbAlto.Position / 100)) + ' px)';
+
+  Caption := 'DesktopIdentifier - Configuración - ' + TituloVentana;
   FPbPreview.Invalidate;
 end;
 
@@ -365,15 +706,11 @@ begin
 
     if FChkBanda.Checked then
     begin
-      BandH := Round(Alto * FAjustes.BandaAlto);
+      BandH := Round(Alto * FTbAlto.Position / 100);
       if BandH < 8 then
         BandH := 8;
-      if FChkLetraBanda.Checked then
-        DibujarBanda(G, RF(0, 0, Ancho, BandH), FColor, LetraSeleccionada,
-          FAjustes.BandaColorTexto)
-      else
-        DibujarBanda(G, RF(0, 0, Ancho, BandH), FColor, '',
-          FAjustes.BandaColorTexto);
+      DibujarBanda(G, RF(0, 0, Ancho, BandH), FColorBanda,
+        Trim(FEdTextoBanda.Text), FColorTextoBanda, AlineacionSeleccionada);
     end;
 
     Estilo := EstiloActual;
@@ -392,30 +729,62 @@ begin
   end;
 end;
 
-procedure TConfigForm.CambiarColor(Sender: TObject);
+procedure TConfigForm.TextoCambiado(Sender: TObject);
+begin
+  if not FColorPersonalizado then
+  begin
+    if SameText(TextoUi, 'A') then
+      FColor := ColorPorTexto('A')
+    else if SameText(TextoUi, 'B') then
+      FColor := ColorPorTexto('B');
+  end;
+  ActualizarVista;
+end;
+
+function TConfigForm.ElegirColor(var C: TRgb): Boolean;
 var
   Dlg: TColorDialog;
 begin
+  Result := False;
   Dlg := TColorDialog.Create(Self);
   try
-    Dlg.Color := RgbATColor(FColor);
+    Dlg.Color := RgbATColor(C);
     Dlg.Options := Dlg.Options + [cdFullOpen];
     if Dlg.Execute then
     begin
-      FColor := TColorARgb(Dlg.Color);
-      FColorPersonalizado := True;
-      ActualizarVista;
+      C := TColorARgb(Dlg.Color);
+      Result := True;
     end;
   finally
     Dlg.Free;
   end;
 end;
 
-procedure TConfigForm.LetraCambiada(Sender: TObject);
+procedure TConfigForm.CambiarColorCartel(Sender: TObject);
 begin
-  if not FColorPersonalizado then
-    FColor := ColorPorTexto(LetraSeleccionada);
-  ActualizarVista;
+  if ElegirColor(FColor) then
+  begin
+    FColorPersonalizado := True;
+    ActualizarVista;
+  end;
+end;
+
+procedure TConfigForm.CambiarColorTexto(Sender: TObject);
+begin
+  if ElegirColor(FColorTexto) then
+    ActualizarVista;
+end;
+
+procedure TConfigForm.CambiarColorBanda(Sender: TObject);
+begin
+  if ElegirColor(FColorBanda) then
+    ActualizarVista;
+end;
+
+procedure TConfigForm.CambiarColorTextoBanda(Sender: TObject);
+begin
+  if ElegirColor(FColorTextoBanda) then
+    ActualizarVista;
 end;
 
 procedure TConfigForm.CambioTamano(Sender: TObject);
@@ -428,7 +797,32 @@ begin
   ActualizarVista;
 end;
 
+procedure TConfigForm.CambioOpacidadTexto(Sender: TObject);
+begin
+  ActualizarVista;
+end;
+
+procedure TConfigForm.CambioEsquinas(Sender: TObject);
+begin
+  ActualizarVista;
+end;
+
+procedure TConfigForm.CambioMargenes(Sender: TObject);
+begin
+  FPbPreview.Invalidate;
+end;
+
 procedure TConfigForm.CambioBanda(Sender: TObject);
+begin
+  ActualizarVista;
+end;
+
+procedure TConfigForm.CambioAlto(Sender: TObject);
+begin
+  ActualizarVista;
+end;
+
+procedure TConfigForm.CambioTextoBanda(Sender: TObject);
 begin
   FPbPreview.Invalidate;
 end;
@@ -459,6 +853,33 @@ begin
   end;
 end;
 
+procedure TConfigForm.AplicarDesdeUi(const MensajeOk: string);
+var
+  Mensaje: string;
+begin
+  if not EstadoInstalacion.HostInstalado then
+  begin
+    MostrarMensaje('Sin instalar: pulsa Instalar antes de aplicar.', True);
+    Exit;
+  end;
+
+  FBtnAplicar.Enabled := False;
+  FBtnReaplicar.Enabled := False;
+  Screen.Cursor := crHourGlass;
+  try
+    FAjustes := AjustesDeUi;
+    if Aplicar(FAjustes, Mensaje) then
+      MostrarMensaje(MensajeOk + ' a las ' + TimeToStr(Now) + '.', False)
+    else
+      MostrarMensaje('Error: ' + Mensaje, True);
+  finally
+    Screen.Cursor := crDefault;
+    FBtnAplicar.Enabled := True;
+    FBtnReaplicar.Enabled := True;
+    RefrescarEstadoInstalacion;
+  end;
+end;
+
 procedure TConfigForm.InstalarClick(Sender: TObject);
 var
   Mensaje: string;
@@ -486,28 +907,18 @@ begin
 end;
 
 procedure TConfigForm.AplicarClick(Sender: TObject);
-var
-  Mensaje: string;
 begin
-  if not EstadoInstalacion.HostInstalado then
+  AplicarDesdeUi('Aplicado');
+end;
+
+procedure TConfigForm.ReaplicarClick(Sender: TObject);
+begin
+  if not FChkBanda.Checked then
   begin
-    MostrarMensaje('Sin instalar: pulsa Instalar antes de aplicar.', True);
+    MostrarMensaje('La banda está desactivada: marca la casilla y pulsa Aplicar.', True);
     Exit;
   end;
-
-  FBtnAplicar.Enabled := False;
-  Screen.Cursor := crHourGlass;
-  try
-    FAjustes := AjustesDeUi;
-    if Aplicar(FAjustes, Mensaje) then
-      MostrarMensaje(Mensaje, False)
-    else
-      MostrarMensaje('Error: ' + Mensaje, True);
-  finally
-    Screen.Cursor := crDefault;
-    FBtnAplicar.Enabled := True;
-    RefrescarEstadoInstalacion;
-  end;
+  AplicarDesdeUi('Banda reaplicada');
 end;
 
 procedure TConfigForm.DesinstalarClick(Sender: TObject);

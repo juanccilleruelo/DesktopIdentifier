@@ -13,6 +13,7 @@ type
   TBadgeStyle = record
     Texto: string;
     Color: TRgb;
+    ColorTexto: TRgb;
     OpacidadPanel: Double;
     OpacidadLetra: Double;
     Esquinas: Double;
@@ -126,7 +127,11 @@ begin
     FontSize := Px * 0.62;
     Fnt := TGPFont.Create(WideString(Fuente), FontSize, FontStyleBold, UnitPixel);
     try
-      G.MeasureString(WideString(Texto), Length(Texto), Fnt, TextR, Fmt, Medida);
+      // Medir con un rect grande: si se mide con el rect del cartel, GDI+
+      // devuelve la anchura recortada (no la real), el factor de ajuste sale 1
+      // y DrawString corta los ultimos caracteres.
+      G.MeasureString(WideString(Texto), Length(Texto), Fnt,
+        RF(Area.X, Area.Y, Px * 10, Px * 10), Fmt, Medida);
 
       MaxW := Px * 0.66;
       MaxH := Px * 0.58;
@@ -152,7 +157,7 @@ begin
       end;
 
       AlphaLetra := Min(255, Round(Estilo.OpacidadLetra * 255));
-      PincelTexto := TGPSolidBrush.Create(MakeColor(Byte(AlphaLetra), 255, 255, 255));
+      PincelTexto := TGPSolidBrush.Create(ArgbDe(Estilo.ColorTexto, Byte(AlphaLetra)));
       try
         G.DrawString(WideString(Texto), Length(Texto), Fnt, TextR, Fmt, PincelTexto);
       finally

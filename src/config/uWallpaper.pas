@@ -255,7 +255,7 @@ begin
         Alto := H * 0.22;
       Area := RF(0, 0, W, Alto);
       DibujarBanda(G, Area, Ajustes.BandaColor, Ajustes.BandaTexto,
-        Ajustes.BandaColorTexto);
+        Ajustes.BandaColorTexto, Ajustes.BandaAlineacion);
 
       SombraAlto := Max(6, Alto * 0.12);
       SombraR := RF(0, Alto, W, SombraAlto);

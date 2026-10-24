@@ -6,10 +6,12 @@ Marca visual permanente para distinguir dos máquinas virtuales clonadas que
 comparten anfitrión:
 
 - **Banda de color** en la parte superior del escritorio, integrada en el fondo
-  de pantalla (azul para A, naranja para B).
-- **Cartel flotante** con la letra A/B, semitransparente, siempre encima y que
-  **no captura el ratón**: los clics atraviesan el cartel.
-- **Configuración** de letra, color, tamaño y transparencia.
+  de pantalla, con color, altura, texto y alineación configurables.
+- **Cartel flotante** con el texto que quieras (1–4 caracteres), color de panel
+  y de texto, tamaño, opacidades y esquinas; semitransparente, siempre encima y
+  que **no captura el ratón**: los clics atraviesan el cartel.
+- **Configuración** en dos pestañas (Cartel y Banda), con vista previa fiel y
+  botón **Reaplicar banda**.
 - **Arranque automático** con la sesión de Windows.
 
 No requiere administrador: todo es por usuario (`HKCU` y
@@ -83,6 +85,7 @@ estado real: sin instalar, instalado, arranque activo, cartel en marcha.
 | **Instalar** | Copia el host a `%LOCALAPPDATA%\DesktopIdentifier`, escribe el INI, registra el arranque y lo arranca. La primera vez aplica también la banda. |
 | **Aplicar** | Guarda el INI, regenera y aplica la banda (o restaura el fondo si la banda está desactivada) y recarga el cartel. **No** copia el host ni escribe en el registro. |
 | **Desinstalar** | Cierra el cartel, borra la entrada de arranque, restaura el fondo original y borra la carpeta. Una casilla permite **conservar el INI**. |
+| **Reaplicar banda** | Recompone y aplica la banda con la configuración actual; útil si has cambiado el fondo de escritorio a mano. |
 | **Cerrar el cartel** | Detiene el host; la instalación y el arranque siguen intactos. |
 
 También hay modo consola (sin ventana), útil para automatizar:
@@ -121,7 +124,7 @@ mensaje `DesktopIdentifier_RELOAD` (lo envía el configurador al aplicar).
 
 ```ini
 [general]
-version=1
+version=2
 
 [cartel]
 texto=A
@@ -142,13 +145,14 @@ color=#1473E6
 alto=0.08
 texto=
 color_texto=#FFFFFF
+alineacion=derecha
 ```
 
 | Clave | Valores | Notas |
 |---|---|---|
-| `cartel.texto` | 1–4 caracteres | Por defecto `A` |
+| `cartel.texto` | 1–4 caracteres | Por defecto `A`; el host ajusta el tamaño de la letra si no cabe |
 | `cartel.color` | `#RRGGBB` | Panel y borde |
-| `cartel.color_texto` | `#RRGGBB` | Reservado para la fase 2 (el texto se pinta blanco) |
+| `cartel.color_texto` | `#RRGGBB` | Color del texto del cartel |
 | `cartel.tamano` | 90–280 | Píxeles a 96 ppp; el host escala por DPI |
 | `cartel.opacidad_panel` | 0,10–0,60 | |
 | `cartel.opacidad_letra` | 0,30–1,00 | |
@@ -157,10 +161,11 @@ color_texto=#FFFFFF
 | `cartel.esquinas` | 0,00–0,50 | Fracción del tamaño |
 | `cartel.fuente` | texto | Por defecto `Segoe UI` |
 | `banda.activa` | 0/1 | |
-| `banda.color` | `#RRGGBB` | En la fase 1 el configurador lo iguala al del cartel |
+| `banda.color` | `#RRGGBB` | Independiente del color del cartel |
 | `banda.alto` | 0,02–0,20 | Fracción de la altura de pantalla |
-| `banda.texto` | 0–20 caracteres | Vacío = sin texto |
-| `banda.color_texto` | `#RRGGBB` | |
+| `banda.texto` | 0–20 caracteres | Vacío = sin texto; distinto del texto del cartel |
+| `banda.color_texto` | `#RRGGBB` | Color del texto de la banda |
+| `banda.alineacion` | `derecha`, `centro`, `izquierda` | Posición del texto de la banda |
 
 Los valores fuera de rango se recortan; un INI ausente o corrupto equivale a
 los valores por defecto. El configurador guarda con **escritura atómica**
@@ -180,6 +185,8 @@ cartel y banda, `banda_*` → `[banda]`).
   WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE` y `HWND_TOPMOST`.
 - Dibujo con GDI+ en un bitmap ARGB y copia a un **DIB de 32 bpp
   premultiplicado**, que es lo que espera `UpdateLayeredWindow`.
+- El texto del cartel se ajusta automáticamente para que 1–4 caracteres quepan
+  en el panel; el color del texto sale de `cartel.color_texto`.
 - `SetTimer` de 3 s que reafirma el orden superior y recoloca si cambió el área
   de trabajo, el monitor o el DPI.
 - DPI por monitor (`GetDpiForMonitor`, con `GetDpiForWindow` de reserva) y
@@ -198,7 +205,9 @@ cartel y banda, `banda_*` → `[banda]`).
 - Antes de tocar el escritorio guarda `fondo-original.dat` y
   `fondo-original.ini`; al desinstalar restaura ruta, estilo y mosaico. Si el
   escritorio original era un color liso, quita el fondo en vez de dejar la banda.
-- Vista previa con el mismo renderizador GDI+ que el host.
+- Vista previa con el mismo renderizador GDI+ que el host, en dos pestañas
+  (Cartel y Banda).
+- Botón **Reaplicar banda** para recuperar la banda si se cambió el fondo.
 - Detección de estado (instalado, arranque, cartel en marcha) y diálogo de
   desinstalación con opción de conservar la configuración.
 
@@ -213,8 +222,8 @@ lee y escribe con la API de Win32 y los ajustes usan un registro propio.
 
 | | Tamaño | RAM |
 |---|---|---|
-| Host (Release) | **439.808 B** (~430 KB) | working set ~0,3–0,9 MB; privada ~3,2 MB |
-| Configurador (Release) | **2.610.176 B** (~2,5 MB) | VCL, solo al abrirse |
+| Host (Release) | **440.320 B** (~430 KB) | working set ~0,3 MB; privada ~3,2 MB |
+| Configurador (Release) | **2.684.928 B** (~2,6 MB) | VCL, solo al abrirse |
 | Versión anterior (un solo VCL) | ~2,6 MB | ~14,5 MB siempre en memoria |
 
 Sin el recorte de working set, el host muestra ~11 MB de working set por las
@@ -230,27 +239,38 @@ páginas compartidas de GDI+ y las DLL del sistema; su memoria privada es de
   centro devuelve la ventana de debajo (clic transparente).
 - Instalar: copia, INI, valor `Run`, arranque y host en marcha.
 - Aplicar: el hash y la fecha del host instalado y el valor `Run` **no cambian**;
-  el fondo se regenera y el cartel se recoloca (220→260 px vía `RELOAD`).
+  el fondo se regenera y el cartel se recoloca.
 - Editar el INI a mano y enviar `RELOAD`: el cartel cambia sin reiniciarse.
 - Segunda instancia del host: sale y deja una sola.
+- **Fase 2:** cartel `B2` amarillo sobre panel morado y banda verde azulada al
+  14 % con `PRODUCCIÓN` centrado en blanco; la banda del PNG mide 202 px
+  (14 % de 1440). Los controles de la UI (texto y altura) se probaron escribiendo
+  y moviendo el deslizador, y el resultado quedó en el INI y en la pantalla.
+- **Reaplicar banda:** tras cambiar el fondo a mano, el botón reconstruyó la
+  banda y volvió a poner `fondo-distintivo.png`.
+- **Persistencia:** al cerrar y relanzar el host siguió mostrando `B2` y leyendo
+  los mismos valores del INI.
+- **Validación del INI:** 0 fallos en las pruebas de rangos, alineación inválida,
+  migración del formato antiguo y round-trip.
 - Desinstalar: cierra el host, borra `Run`, restaura el `TranscodedWallpaper`
   original (hash idéntico al de antes de instalar), conserva solo el INI o borra
   la carpeta con `/discard`.
 
 ---
 
-## Limitaciones y pendientes (fase 2)
+## Limitaciones y pendientes (fase 3)
 
 - La banda es parte del fondo: Windows la repite en **todos** los monitores.
-- Si se cambia el fondo a mano, la banda desaparece; hay que volver a pulsar
-  *Aplicar* (el botón **Reaplicar banda** está previsto para la fase 2).
+- Si se cambia el fondo a mano, la banda desaparece; pulsa **Reaplicar banda**.
 - El host no tiene icono en la bandeja ni ventana propia: se gestiona desde el
   configurador.
 - En aplicaciones a pantalla completa exclusiva el cartel puede quedar oculto.
+- Un texto de banda muy largo en una pantalla pequeña puede recortarse; el
+  cartel sí ajusta el tamaño de la letra.
 - Sin icono propio en los ejecutables ni firma digital (igual que antes).
-- Fase 2: color/altura/texto de la banda, texto del cartel de hasta 4
-  caracteres, color del texto, reaplicar banda. Fase 3: versión visible,
-  reparación y actualización guiada.
+- Fase 3: versión visible, reparación de instalaciones huérfanas,
+  actualización guiada y, opcionalmente, degradado/sombra de la banda y copia
+  de color entre cartel y banda.
 
 ---
 
@@ -258,6 +278,7 @@ páginas compartidas de GDI+ y las DLL del sistema; su memoria privada es de
 
 - [Plan de separación en dos programas](docs/PLAN-DOS-PROGRAMAS.md)
 - [Fase 1: qué se hizo y cómo se verificó](docs/FASE-1.md)
+- [Fase 2: nuevas opciones de cartel y banda](docs/FASE-2.md)
 - [Traspaso de contexto original](docs/TRASPASO.md)
 
 ## Licencia

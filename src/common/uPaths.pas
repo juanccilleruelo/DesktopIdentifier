@@ -27,7 +27,7 @@ const
   ArchivoFondoOriginal = 'fondo-original.dat';
   ArchivoMarcador      = 'fondo-original.ini';
 
-  VersionAjustes       = 1;
+  VersionAjustes       = 2;
 
 function DirectorioInstalacion: string;
 function DirectorioExe: string;

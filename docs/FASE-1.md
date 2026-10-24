@@ -4,6 +4,9 @@
 **Fecha:** 24/10/2026
 **Base:** [PLAN-DOS-PROGRAMAS.md](PLAN-DOS-PROGRAMAS.md)
 
+> **Nota:** la fase 2 (color, altura y texto de la banda, color del texto y
+> Reaplicar banda) está implementada después; ver [FASE-2.md](FASE-2.md).
+
 ---
 
 ## 1. Decisiones cerradas

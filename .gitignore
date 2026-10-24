@@ -81,3 +81,7 @@ __recovery/
 # Salidas de compilacion de este proyecto
 /bin/
 /dcu/
+
+# Recursos que genera el IDE al abrir los proyectos; el dpr usa *Resources.res
+/src/config/DesktopIdentifier.res
+/src/host/DesktopIdentifierHost.res

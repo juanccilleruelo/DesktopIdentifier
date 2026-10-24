@@ -1,4 +1,4 @@
-unit uStartup;
+﻿unit uStartup;
 
 { Alta y baja del programa de inicio en HKCU\...\Run (por usuario, sin admin). }
 

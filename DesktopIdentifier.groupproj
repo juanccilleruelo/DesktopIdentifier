@@ -1,0 +1,38 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{9B3E7A64-1D2F-4C58-8A90-5E6F2B4C8D71}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="src\config\DesktopIdentifier.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="src\host\DesktopIdentifierHost.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="DesktopIdentifier">
+        <MSBuild Projects="src\config\DesktopIdentifier.dproj"/>
+    </Target>
+    <Target Name="DesktopIdentifier:Clean">
+        <MSBuild Projects="src\config\DesktopIdentifier.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DesktopIdentifier:Make">
+        <MSBuild Projects="src\config\DesktopIdentifier.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DesktopIdentifierHost">
+        <MSBuild Projects="src\host\DesktopIdentifierHost.dproj"/>
+    </Target>
+    <Target Name="DesktopIdentifierHost:Clean">
+        <MSBuild Projects="src\host\DesktopIdentifierHost.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DesktopIdentifierHost:Make">
+        <MSBuild Projects="src\host\DesktopIdentifierHost.dproj" Targets="Make"/>
+    </Target>
+</Project>

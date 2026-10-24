@@ -1,0 +1,14 @@
+# Fuentes Delphi: CRLF en Windows y el BOM se conserva (Git no toca el BOM).
+*.pas       text eol=crlf
+*.dpr       text eol=crlf
+*.dproj     text eol=crlf
+*.groupproj text eol=crlf
+*.rc        text eol=crlf
+*.cmd       text eol=crlf
+*.md        text eol=crlf
+
+# Binarios
+*.res       binary
+*.png       binary
+*.ico       binary
+*.exe       binary

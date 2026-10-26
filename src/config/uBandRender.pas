@@ -22,8 +22,9 @@ var
   Fnt: TGPFont;
   Fmt: TGPStringFormat;
   Pincel: TGPSolidBrush;
-  FontSize, Margen, X, AnchoTexto: Single;
+  FontSize, Margen, X, AnchoTexto, AnchoDisponible, Factor: Single;
   AlineacionGdi: StringAlignment;
+  Medida: TGPRectF;
 begin
   if (Area.Width <= 0) or (Area.Height <= 0) then
     Exit;
@@ -50,11 +51,12 @@ begin
 
   FontSize := Max(12, Area.Height * 0.58);
   Margen := Max(12, Area.Height * 0.55);
+  AnchoDisponible := Area.Width - Margen * 2;
   if SameText(Alineacion, 'centro') then
   begin
     AlineacionGdi := StringAlignmentCenter;
-    X := Area.X;
-    AnchoTexto := Area.Width;
+    X := Area.X + Margen;
+    AnchoTexto := Area.Width - Margen * 2;
   end
   else if SameText(Alineacion, 'izquierda') then
   begin
@@ -75,6 +77,22 @@ begin
     try
       Fmt.SetAlignment(AlineacionGdi);
       Fmt.SetLineAlignment(StringAlignmentCenter);
+
+      // Si el texto no cabe a lo ancho, reducir la fuente. Se mide con un rect
+      // grande para que GDI+ no devuelva una anchura recortada.
+      if AnchoDisponible > 0 then
+      begin
+        G.MeasureString(WideString(Texto), Length(Texto), Fnt,
+          RF(Area.X, Area.Y, Area.Width * 10, Area.Height * 10), Fmt, Medida);
+        if (Medida.Width > AnchoDisponible) and (Medida.Width > 0) then
+        begin
+          Factor := AnchoDisponible / Medida.Width;
+          Fnt.Free;
+          FontSize := Max(6, FontSize * Factor);
+          Fnt := TGPFont.Create('Segoe UI', FontSize, FontStyleBold, UnitPixel);
+        end;
+      end;
+
       Pincel := TGPSolidBrush.Create(ArgbDe(ColorTexto, 205));
       try
         G.DrawString(WideString(Texto), Length(Texto), Fnt,

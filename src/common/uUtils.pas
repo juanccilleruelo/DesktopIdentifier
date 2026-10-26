@@ -28,7 +28,6 @@ function MezclaArgb(C, Destino: TRgb; T: Double; Alpha: Byte): ARGB;
 
 function DpiDeVentana(Wnd: HWND): Cardinal;
 function DpiDeMonitor(Mon: HMONITOR): Cardinal;
-function EscalaDe(Wnd: HWND): Single;
 procedure ConfigurarDpi;
 function ResolucionPrimaria(out Ancho, Alto: Integer): Boolean;
 
@@ -157,14 +156,6 @@ begin
   end;
   if Result < 72 then
     Result := 0;
-end;
-
-function EscalaDe(Wnd: HWND): Single;
-var
-  Dpi: Cardinal;
-begin
-  Dpi := DpiDeVentana(Wnd);
-  Result := Dpi / 96;
 end;
 
 procedure ConfigurarDpi;

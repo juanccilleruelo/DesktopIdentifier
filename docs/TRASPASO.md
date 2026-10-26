@@ -5,11 +5,12 @@
 workspaces en DSH: el workspace queda fijado al crear la sesión).
 **Destino:** este workspace, `C:\Views\DesktopIdentifier`.
 
-> **Actualización (24/10/2026):** las fases 1 y 2 están implementadas y
+> **Actualización (26/10/2026):** las fases 1, 2 y 3 están implementadas y
 > probadas. Las decisiones de la sección 3 están cerradas (ver el plan,
-> sección 12) y el estado real está en [FASE-1.md](FASE-1.md) y
-> [FASE-2.md](FASE-2.md). Este documento se conserva como traspaso histórico;
-> donde dice `DistintiveVM`, el nombre actual es `DesktopIdentifier`.
+> sección 12) y el estado real está en [FASE-1.md](FASE-1.md),
+> [FASE-2.md](FASE-2.md) y [FASE-3.md](FASE-3.md). Este documento se conserva
+> como traspaso histórico; donde dice `DistintiveVM`, el nombre actual es
+> `DesktopIdentifier`.
 
 Este documento resume el estado del proyecto y las decisiones tomadas para que
 una sesión nueva aquí pueda continuar sin releer toda la conversación anterior.

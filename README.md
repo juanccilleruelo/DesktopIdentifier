@@ -12,7 +12,11 @@ comparten anfitrión:
   que **no captura el ratón**: los clics atraviesan el cartel.
 - **Configuración** en dos pestañas (Cartel y Banda), con vista previa fiel y
   botón **Reaplicar banda**.
+- **Actualización guiada** del programa de inicio y detección de instalaciones
+  incompletas.
 - **Arranque automático** con la sesión de Windows.
+
+Versión actual: **1.1.0.0**.
 
 No requiere administrador: todo es por usuario (`HKCU` y
 `%LOCALAPPDATA%\DesktopIdentifier`).
@@ -32,7 +36,7 @@ Desde la fase 1 hay **dos programas** con responsabilidades separadas:
 src\
   common\      uPaths, uSettings, uUtils, uBadgeRender   (compartido, sin VCL)
   config\      DesktopIdentifier.dpr, uConfigForm, uBandRender, uWallpaper,
-               uStartup, uInstall, manifiesto y recursos
+               uStartup, uInstall, uVersion, manifiesto y recursos
   host\        DesktopIdentifierHost.dpr, uHostWindow, manifiesto y recursos
 bin\           salida de compilación (ignorada)
 dcu\           unidades compiladas (ignorada)
@@ -66,7 +70,7 @@ Salida:
 
 ```
 bin\DesktopIdentifierHost.exe   ~430 KB   (sin VCL)
-bin\DesktopIdentifier.exe       ~2,5 MB   (VCL, configurador)
+bin\DesktopIdentifier.exe       ~2,6 MB   (VCL, configurador)
 ```
 
 `HostResources.rc` y `ConfigResources.rc` contienen el manifiesto y la versión.
@@ -80,18 +84,51 @@ compilar.
 Abre `Configurar.cmd` (o `bin\DesktopIdentifier.exe`). La ventana muestra el
 estado real: sin instalar, instalado, arranque activo, cartel en marcha.
 
-| Botón | Qué hace |
+El botón de la primera fila cambia según el estado de la instalación:
+
+| Botón | Cuándo | Qué hace |
+|---|---|---|
+| **Instalar** | Sin instalar | Copia el host a `%LOCALAPPDATA%\DesktopIdentifier`, escribe el INI, registra el arranque y lo arranca. Aplica también la banda. |
+| **Actualizar** | Hay una versión nueva del host | Pide confirmación, cierra el cartel, copia el host nuevo, lo relanza y regenera la banda. **No** toca el INI ni el arranque. |
+| **Reparar** | Falta el arranque, el INI o el host; o el arranque apunta mal | Vuelve a dejar la instalación completa y aplica la configuración. |
+| **Reinstalar** | Instalado y al día | Copia de nuevo el host y aplica la configuración actual. |
+
+| Otros botones | Qué hacen |
 |---|---|
-| **Instalar** | Copia el host a `%LOCALAPPDATA%\DesktopIdentifier`, escribe el INI, registra el arranque y lo arranca. La primera vez aplica también la banda. |
 | **Aplicar** | Guarda el INI, regenera y aplica la banda (o restaura el fondo si la banda está desactivada) y recarga el cartel. **No** copia el host ni escribe en el registro. |
 | **Desinstalar** | Cierra el cartel, borra la entrada de arranque, restaura el fondo original y borra la carpeta. Una casilla permite **conservar el INI**. |
 | **Reaplicar banda** | Recompone y aplica la banda con la configuración actual; útil si has cambiado el fondo de escritorio a mano. |
 | **Cerrar el cartel** | Detiene el host; la instalación y el arranque siguen intactos. |
 
+### Versión y actualización
+
+- La versión vive en los recursos (`*Resources.rc`) y se lee del propio
+  ejecutable.
+- El configurador muestra **su** versión en la cabecera y la **del host
+  instalado** en la línea de estado.
+- Si el host que acompaña al configurador es más nuevo, el botón pasa a
+  **Actualizar** y la ventana lo avisa con las dos versiones.
+- La actualización es la única excepción a «Aplicar no copia»: copia el host
+  nuevo, pero deja intactos el INI y la entrada de arranque.
+- La versión actual es **1.1.0.0**.
+
+### Reparación
+
+Se detectan instalaciones incompletas:
+
+- el arranque apunta a un ejecutable que ya no existe;
+- el arranque apunta a otra ruta;
+- falta el INI;
+- quedan restos de la carpeta de instalación sin el host;
+- hay un cartel en marcha que no está instalado.
+
+En esos casos la ventana muestra **Instalación incompleta · pulsa Reparar**, el
+botón cambia a **Reparar** y explica el problema concreto.
+
 También hay modo consola (sin ventana), útil para automatizar:
 
 ```bat
-bin\DesktopIdentifier.exe /install
+bin\DesktopIdentifier.exe /install              :: instala o actualiza
 bin\DesktopIdentifier.exe /apply
 bin\DesktopIdentifier.exe /uninstall            :: conserva el INI
 bin\DesktopIdentifier.exe /uninstall /discard   :: borra todo
@@ -177,6 +214,14 @@ cartel y banda, `banda_*` → `[banda]`).
 
 ---
 
+## Capturas
+
+| Cartel | Banda |
+|---|---|
+| ![Pestaña Cartel](docs/capturas/cartel.png) | ![Pestaña Banda](docs/capturas/banda.png) |
+
+---
+
 ## Cómo funciona
 
 **Host (`DesktopIdentifierHost.exe`, sin VCL).**
@@ -187,6 +232,7 @@ cartel y banda, `banda_*` → `[banda]`).
   premultiplicado**, que es lo que espera `UpdateLayeredWindow`.
 - El texto del cartel se ajusta automáticamente para que 1–4 caracteres quepan
   en el panel; el color del texto sale de `cartel.color_texto`.
+- El texto de la banda también se reduce si no cabe a lo ancho.
 - `SetTimer` de 3 s que reafirma el orden superior y recoloca si cambió el área
   de trabajo, el monitor o el DPI.
 - DPI por monitor (`GetDpiForMonitor`, con `GetDpiForWindow` de reserva) y
@@ -208,6 +254,10 @@ cartel y banda, `banda_*` → `[banda]`).
 - Vista previa con el mismo renderizador GDI+ que el host, en dos pestañas
   (Cartel y Banda).
 - Botón **Reaplicar banda** para recuperar la banda si se cambió el fondo.
+- Lee la versión del host instalado y del que acompaña al configurador; si hay
+  una nueva, ofrece **Actualizar** y guía el proceso.
+- Detecta instalaciones incompletas (arranque roto, INI ausente, restos) y
+  ofrece **Reparar**.
 - Detección de estado (instalado, arranque, cartel en marcha) y diálogo de
   desinstalación con opción de conservar la configuración.
 
@@ -223,7 +273,7 @@ lee y escribe con la API de Win32 y los ajustes usan un registro propio.
 | | Tamaño | RAM |
 |---|---|---|
 | Host (Release) | **440.320 B** (~430 KB) | working set ~0,3 MB; privada ~3,2 MB |
-| Configurador (Release) | **2.684.928 B** (~2,6 MB) | VCL, solo al abrirse |
+| Configurador (Release) | **2.693.120 B** (~2,6 MB) | VCL, solo al abrirse |
 | Versión anterior (un solo VCL) | ~2,6 MB | ~14,5 MB siempre en memoria |
 
 Sin el recorte de working set, el host muestra ~11 MB de working set por las
@@ -232,7 +282,7 @@ páginas compartidas de GDI+ y las DLL del sistema; su memoria privada es de
 
 ---
 
-## Pruebas realizadas (24/10/2026)
+## Pruebas realizadas (24–26/10/2026)
 
 - Host con los cinco estilos esperados (`LAYERED`, `TRANSPARENT`, `TOOLWINDOW`,
   `NOACTIVATE`, `TOPMOST`), visible, sin `APPWINDOW`; `WindowFromPoint` en el
@@ -252,25 +302,35 @@ páginas compartidas de GDI+ y las DLL del sistema; su memoria privada es de
   los mismos valores del INI.
 - **Validación del INI:** 0 fallos en las pruebas de rangos, alineación inválida,
   migración del formato antiguo y round-trip.
+- **Fase 3 — actualización:** con el host instalado en 1.0.0.0 y el nuevo en
+  1.1.0.0, la ventana mostró «Actualizar» y las dos versiones; tras confirmar,
+  el host instalado quedó en 1.1.0.0 (440.320 B), el INI conservó `texto=text`
+  y el valor `Run` no cambió.
+- **Fase 3 — reparación:** quitando el valor `Run`, apuntándolo a una ruta
+  inexistente o borrando el INI, la ventana mostró «Instalación incompleta ·
+  pulsa Reparar» con el problema concreto; al reparar volvieron el arranque y el
+  host, y la configuración del usuario se conservó.
+- **Fase 3 — texto largo de banda:** con 20 caracteres en una banda de 700 px,
+  el texto se reduce para caber con márgenes.
+- **Fase 3 — versión:** la cabecera muestra `v1.1.0.0` y el estado el host
+  instalado `1.1.0.0`.
 - Desinstalar: cierra el host, borra `Run`, restaura el `TranscodedWallpaper`
   original (hash idéntico al de antes de instalar), conserva solo el INI o borra
   la carpeta con `/discard`.
 
 ---
 
-## Limitaciones y pendientes (fase 3)
+## Limitaciones y pendientes
 
 - La banda es parte del fondo: Windows la repite en **todos** los monitores.
 - Si se cambia el fondo a mano, la banda desaparece; pulsa **Reaplicar banda**.
 - El host no tiene icono en la bandeja ni ventana propia: se gestiona desde el
   configurador.
 - En aplicaciones a pantalla completa exclusiva el cartel puede quedar oculto.
-- Un texto de banda muy largo en una pantalla pequeña puede recortarse; el
-  cartel sí ajusta el tamaño de la letra.
 - Sin icono propio en los ejecutables ni firma digital (igual que antes).
-- Fase 3: versión visible, reparación de instalaciones huérfanas,
-  actualización guiada y, opcionalmente, degradado/sombra de la banda y copia
-  de color entre cartel y banda.
+- La fase 3 (versión, actualización guiada y reparación) está completada.
+  Quedan como opcionales el icono en la bandeja, el degradado/sombra de la banda
+  y la copia de color entre cartel y banda.
 
 ---
 
@@ -279,6 +339,7 @@ páginas compartidas de GDI+ y las DLL del sistema; su memoria privada es de
 - [Plan de separación en dos programas](docs/PLAN-DOS-PROGRAMAS.md)
 - [Fase 1: qué se hizo y cómo se verificó](docs/FASE-1.md)
 - [Fase 2: nuevas opciones de cartel y banda](docs/FASE-2.md)
+- [Fase 3: versión, actualización y reparación](docs/FASE-3.md)
 - [Traspaso de contexto original](docs/TRASPASO.md)
 
 ## Licencia

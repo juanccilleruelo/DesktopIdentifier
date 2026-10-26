@@ -10,7 +10,7 @@ uses
   Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
   Vcl.Samples.Spin, Vcl.Dialogs, Vcl.Graphics,
   Winapi.GDIPAPI, Winapi.GDIPOBJ,
-  uPaths, uSettings, uUtils, uBadgeRender, uBandRender, uInstall;
+  uPaths, uSettings, uUtils, uBadgeRender, uBandRender, uInstall, uVersion;
 
 type
   TConfigForm = class(TForm)
@@ -101,6 +101,9 @@ type
     function ElegirColor(var C: TRgb): Boolean;
     function AlineacionSeleccionada: string;
     function ColorAutomatico: Boolean;
+    procedure MostrarEstadoInicial;
+    procedure ActualizarDesdeUi;
+    function ConfirmarActualizacion(const VInstalada, VDisponible: string): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -152,7 +155,7 @@ begin
   CrearControles;
   ActualizarVista;
   RefrescarEstadoInstalacion;
-  MostrarMensaje('El cartel no bloquea los clics: puedes pulsar y escribir a través de él.', False);
+  MostrarEstadoInicial;
 end;
 
 function TConfigForm.ColorAutomatico: Boolean;
@@ -206,7 +209,7 @@ begin
 
   FLblSub := TLabel.Create(Self);
   FLblSub.Parent := FHeader;
-  FLblSub.Caption := 'Marca visual para distinguir esta máquina de la otra';
+  FLblSub.Caption := 'Marca visual para distinguir esta máquina de la otra · v' + VersionApp;
   FLblSub.Font.Name := 'Segoe UI';
   FLblSub.Font.Size := 9;
   FLblSub.Font.Color := RGB(232, 232, 232);
@@ -841,16 +844,44 @@ var
   E: TEstadoInstalacion;
 begin
   E := EstadoInstalacion;
-  if E.HostInstalado then
+  FLblInstalacion.Caption := DescripcionEstado(E);
+
+  if E.RequiereReparacion then
   begin
-    FLblInstalacion.Font.Color := RGB(20, 110, 60);
-    FLblInstalacion.Caption := DescripcionEstado(E);
+    FLblInstalacion.Font.Color := RGB(170, 30, 30);
+    FBtnInstalar.Caption := 'Reparar';
   end
-  else
+  else if not E.HostInstalado then
   begin
     FLblInstalacion.Font.Color := RGB(150, 90, 0);
     FLblInstalacion.Caption := 'Sin instalar · pulsa Instalar para activar el cartel';
+    FBtnInstalar.Caption := 'Instalar';
+  end
+  else if E.ActualizacionDisponible then
+  begin
+    FLblInstalacion.Font.Color := RGB(150, 90, 0);
+    FBtnInstalar.Caption := 'Actualizar';
+  end
+  else
+  begin
+    FLblInstalacion.Font.Color := RGB(20, 110, 60);
+    FBtnInstalar.Caption := 'Reinstalar';
   end;
+end;
+
+procedure TConfigForm.MostrarEstadoInicial;
+var
+  E: TEstadoInstalacion;
+begin
+  E := EstadoInstalacion;
+  if E.RequiereReparacion then
+    MostrarMensaje(E.Problema + ' Pulsa Reparar.', True)
+  else if E.ActualizacionDisponible then
+    MostrarMensaje('Hay una versión nueva del programa de inicio (' +
+      E.VersionInstalada + ' → ' + E.VersionDisponible +
+      '). Pulsa Actualizar.', False)
+  else
+    MostrarMensaje('El cartel no bloquea los clics: puedes pulsar y escribir a través de él.', False);
 end;
 
 procedure TConfigForm.AplicarDesdeUi(const MensajeOk: string);
@@ -882,8 +913,25 @@ end;
 
 procedure TConfigForm.InstalarClick(Sender: TObject);
 var
-  Mensaje: string;
+  E: TEstadoInstalacion;
+  Mensaje, Accion: string;
 begin
+  E := EstadoInstalacion;
+
+  if E.HostInstalado and E.ActualizacionDisponible and
+     (not E.RequiereReparacion) then
+  begin
+    ActualizarDesdeUi;
+    Exit;
+  end;
+
+  if E.RequiereReparacion then
+    Accion := 'Reparado'
+  else if E.HostInstalado then
+    Accion := 'Reinstalado'
+  else
+    Accion := 'Instalado';
+
   FBtnInstalar.Enabled := False;
   Screen.Cursor := crHourGlass;
   try
@@ -895,13 +943,71 @@ begin
     end;
     if not Aplicar(FAjustes, Mensaje) then
     begin
-      MostrarMensaje('Instalado, pero no se pudo aplicar: ' + Mensaje, True);
+      MostrarMensaje(Accion + ', pero no se pudo aplicar: ' + Mensaje, True);
       Exit;
     end;
-    MostrarMensaje('Instalado y aplicado a las ' + TimeToStr(Now) + '.', False);
+    MostrarMensaje(Accion + ' y aplicado a las ' + TimeToStr(Now) + '.', False);
   finally
     Screen.Cursor := crDefault;
     FBtnInstalar.Enabled := True;
+    RefrescarEstadoInstalacion;
+  end;
+end;
+
+function TConfigForm.ConfirmarActualizacion(const VInstalada,
+  VDisponible: string): Boolean;
+var
+  Dlg: TTaskDialog;
+begin
+  Result := False;
+  Dlg := TTaskDialog.Create(Self);
+  try
+    Dlg.Caption := 'Actualizar el programa de inicio';
+    Dlg.Title := 'Actualizar';
+    Dlg.Text := 'Se actualizará el programa de inicio de ' + VInstalada +
+      ' a ' + VDisponible + '. El cartel se cerrará y volverá a abrirse; ' +
+      'la configuración y el arranque no cambian.';
+    Dlg.CommonButtons := [tcbYes, tcbNo];
+    Dlg.DefaultButton := tcbNo;
+    if not Dlg.Execute then
+      Exit;
+    Result := Dlg.ModalResult = mrYes;
+  finally
+    Dlg.Free;
+  end;
+end;
+
+procedure TConfigForm.ActualizarDesdeUi;
+var
+  E: TEstadoInstalacion;
+  Mensaje: string;
+begin
+  E := EstadoInstalacion;
+  if not ConfirmarActualizacion(E.VersionInstalada, E.VersionDisponible) then
+    Exit;
+
+  FBtnInstalar.Enabled := False;
+  FBtnAplicar.Enabled := False;
+  FBtnReaplicar.Enabled := False;
+  Screen.Cursor := crHourGlass;
+  try
+    if not ActualizarHost(Mensaje) then
+    begin
+      MostrarMensaje('Error: ' + Mensaje, True);
+      Exit;
+    end;
+    FAjustes := AjustesDeUi;
+    if Aplicar(FAjustes, Mensaje) then
+      MostrarMensaje('Actualizado a ' + VersionArchivo(RutaHostInstalado) +
+        ' y banda regenerada a las ' + TimeToStr(Now) + '.', False)
+    else
+      MostrarMensaje('Actualizado, pero no se pudo regenerar la banda: ' +
+        Mensaje, True);
+  finally
+    Screen.Cursor := crDefault;
+    FBtnInstalar.Enabled := True;
+    FBtnAplicar.Enabled := True;
+    FBtnReaplicar.Enabled := True;
     RefrescarEstadoInstalacion;
   end;
 end;

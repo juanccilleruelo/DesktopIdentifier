@@ -19,12 +19,21 @@ type
     HostInstalado: Boolean;
     ConfiguracionPresente: Boolean;
     InicioRegistrado: Boolean;
+    RunCorrecto: Boolean;
     HostEnMarcha: Boolean;
+    CarpetaPresente: Boolean;
+    RutaRun: string;
+    VersionInstalada: string;
+    VersionDisponible: string;
+    ActualizacionDisponible: Boolean;
+    RequiereReparacion: Boolean;
+    Problema: string;
   end;
 
 function EstadoInstalacion: TEstadoInstalacion;
 function DescripcionEstado(const E: TEstadoInstalacion): string;
 function Instalar(const Ajustes: TSettings; out Mensaje: string): Boolean;
+function ActualizarHost(out Mensaje: string): Boolean;
 function Aplicar(const Ajustes: TSettings; out Mensaje: string): Boolean;
 function Desinstalar(ConservarConfiguracion: Boolean; out Mensaje: string): Boolean;
 function CerrarHost(EsperaMs: Cardinal): Boolean;
@@ -33,7 +42,7 @@ implementation
 
 uses
   Winapi.Windows, Winapi.ShellAPI, System.SysUtils,
-  uPaths, uUtils, uWallpaper, uStartup;
+  uPaths, uUtils, uWallpaper, uStartup, uVersion;
 
 procedure LanzarHost;
 begin
@@ -104,18 +113,82 @@ begin
 end;
 
 function EstadoInstalacion: TEstadoInstalacion;
+var
+  Problemas: string;
+
+  procedure Agregar(const S: string);
+  begin
+    if Problemas <> '' then
+      Problemas := Problemas + ' ';
+    Problemas := Problemas + S;
+  end;
+
 begin
+  Result.CarpetaPresente := DirectoryExists(DirectorioInstalacion);
   Result.HostInstalado := FileExists(RutaHostInstalado);
   Result.ConfiguracionPresente := FileExists(RutaIniInstalada);
   Result.InicioRegistrado := InicioRegistrado;
+  Result.RutaRun := RutaInicioRegistrada;
+  Result.RunCorrecto := Result.InicioRegistrado and
+    MismaRuta(Result.RutaRun, RutaHostInstalado);
   Result.HostEnMarcha := HostEnEjecucion;
+  Result.VersionInstalada := VersionArchivo(RutaHostInstalado);
+  Result.VersionDisponible := VersionArchivo(RutaHostFuente);
+  Result.ActualizacionDisponible := Result.HostInstalado and
+    (Result.VersionInstalada <> '') and (Result.VersionDisponible <> '') and
+    (CompararVersiones(Result.VersionDisponible, Result.VersionInstalada) > 0);
+
+  Problemas := '';
+  if Result.HostInstalado then
+  begin
+    if not Result.InicioRegistrado then
+      Agregar('Falta el arranque automático.')
+    else if not Result.RunCorrecto then
+      Agregar('La entrada de arranque apunta a otra ruta.');
+    if not Result.ConfiguracionPresente then
+      Agregar('Falta el archivo de configuración.');
+  end
+  else
+  begin
+    if Result.InicioRegistrado then
+      Agregar('El arranque apunta a un programa que ya no existe.')
+    else if Result.CarpetaPresente then
+      Agregar('Quedan restos de una instalación anterior.');
+    if Result.HostEnMarcha then
+      Agregar('Hay un cartel en marcha que no está instalado.');
+  end;
+  Result.Problema := Problemas;
+  Result.RequiereReparacion := Problemas <> '';
 end;
 
 function DescripcionEstado(const E: TEstadoInstalacion): string;
+var
+  V: string;
 begin
+  if E.RequiereReparacion then
+  begin
+    if E.HostInstalado then
+      Result := 'Instalación incompleta · pulsa Reparar'
+    else
+      Result := 'Sin instalar (hay restos) · pulsa Reparar';
+    Exit;
+  end;
+
   if not E.HostInstalado then
-    Exit('Sin instalar');
-  Result := 'Instalado';
+  begin
+    Result := 'Sin instalar';
+    Exit;
+  end;
+
+  V := E.VersionInstalada;
+  if V = '' then
+    V := '?';
+  Result := 'Instalado · host ' + V;
+  if E.ActualizacionDisponible then
+  begin
+    Result := Result + ' → ' + E.VersionDisponible + ' disponible';
+    Exit;
+  end;
   if E.InicioRegistrado then
     Result := Result + ' · arranque activo'
   else
@@ -183,6 +256,65 @@ begin
   end;
 
   Mensaje := 'Instalado en ' + Dir + ' y arranque activo.';
+  Result := True;
+end;
+
+function ActualizarHost(out Mensaje: string): Boolean;
+var
+  Fuente, Instalado, VInst, VNueva: string;
+  Err: DWORD;
+begin
+  Result := False;
+  Fuente := RutaHostFuente;
+  Instalado := RutaHostInstalado;
+
+  if not FileExists(Fuente) then
+  begin
+    Mensaje := 'No encuentro ' + NombreHost +
+      ' junto al configurador. Compila el grupo completo.';
+    Exit;
+  end;
+
+  if not FileExists(Instalado) then
+  begin
+    Mensaje := 'No hay una instalación que actualizar. Pulsa Instalar.';
+    Exit;
+  end;
+
+  VInst := VersionArchivo(Instalado);
+  VNueva := VersionArchivo(Fuente);
+  if (VInst <> '') and (VNueva <> '') and
+     (CompararVersiones(VNueva, VInst) <= 0) then
+  begin
+    Mensaje := 'El programa de inicio ya está en la versión ' + VInst + '.';
+    Result := True;
+    Exit;
+  end;
+
+  if HostEnEjecucion then
+    if not CerrarHost(5000) then
+    begin
+      Mensaje := 'El cartel sigue en marcha y no se puede actualizar.';
+      Exit;
+    end;
+
+  if not CopyFile(PChar(Fuente), PChar(Instalado), False) then
+  begin
+    Err := GetLastError;
+    Mensaje := 'No se pudo copiar el programa de inicio: ' + SysErrorMessage(Err);
+    Exit;
+  end;
+
+  if not HostEnEjecucion then
+  begin
+    LanzarHost;
+    EsperarArranqueHost(3000);
+  end;
+
+  if VNueva <> '' then
+    Mensaje := 'Programa de inicio actualizado a ' + VNueva + '.'
+  else
+    Mensaje := 'Programa de inicio actualizado.';
   Result := True;
 end;
 

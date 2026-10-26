@@ -1,6 +1,6 @@
 # Plan: separar Distintive VM en dos programas
 
-**Estado:** fases 1 y 2 implementadas (ver [FASE-1.md](FASE-1.md) y [FASE-2.md](FASE-2.md))
+**Estado:** fases 1, 2 y 3 implementadas (ver [FASE-1.md](FASE-1.md), [FASE-2.md](FASE-2.md) y [FASE-3.md](FASE-3.md))
 **Fecha:** 24/10/2026
 **Proyecto:** DesktopIdentifier (Delphi 12, Win32)
 
@@ -387,10 +387,14 @@ Implementada; el detalle y las evidencias están en [FASE-2.md](FASE-2.md).
 
 ### Fase 3 — Pulido
 
-- Versión del host visible en la UI y actualización guiada.
-- Detección de instalaciones huérfanas y botón de reparación.
-- Documentación final (README) y capturas.
-- Revisión de tamaño/memoria y limpieza de código muerto.
+- [x] Versión del host visible en la UI y actualización guiada.
+- [x] Detección de instalaciones huérfanas y botón de reparación.
+- [x] Documentación final (README) y capturas.
+- [x] Revisión de tamaño/memoria y limpieza de código muerto.
+
+Implementada; el detalle está en [FASE-3.md](FASE-3.md). Quedan como opcionales
+el icono en la bandeja, el degradado/sombra y la copia de color entre cartel y
+banda.
 
 ---
 
@@ -476,6 +480,6 @@ La propuesta era:
 4. La banda la genera el configurador; el host solo pinta el cartel.
 5. Fase 1 = separar sin cambiar comportamiento; fase 2 = color/altura/textos; fase 3 = pulido.
 
-La fase 1 se acometió con estas decisiones y la fase 2 añadió las opciones de
-cartel y banda; el resultado está en [FASE-1.md](FASE-1.md) y
-[FASE-2.md](FASE-2.md). Queda la fase 3 (versión, reparación y pulido).
+Las tres fases están implementadas; el resultado está en [FASE-1.md](FASE-1.md),
+[FASE-2.md](FASE-2.md) y [FASE-3.md](FASE-3.md). Quedan solo los opcionales
+(bandeja, degradado/sombra y copia de color).

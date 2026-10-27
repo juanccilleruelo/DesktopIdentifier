@@ -10,8 +10,8 @@
 
 The settings window now has **two tabs**:
 
-- **Badge:** text (1–4 characters), panel color, text color, size, panel
-  opacity, text opacity, corner radius and margins.
+- **Badge:** any text (the window widens horizontally to fit it), panel color,
+  text color, size, panel opacity, text opacity, corner radius and margins.
 - **Band:** active yes/no, color, text color, height, text and alignment
   (right, center, left).
 
@@ -23,8 +23,8 @@ Also:
   the host and the wallpaper generator, with the real text and colors.
 - The **badge text color** and the **band text color** are now really used
   (before they were saved but the badge painted white).
-- The badge text is **automatically adjusted** so that 1–4 characters fit in
-  the panel.
+- The badge window **widens horizontally** to fit any text; a single character
+  keeps the square shape. The band text is reduced if it does not fit in width.
 
 ### New keys
 

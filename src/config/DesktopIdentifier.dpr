@@ -28,7 +28,7 @@ begin
 
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.Title := 'DesktopIdentifier';
+  Application.Title := 'Desktop Identifier';
   try
     Application.Icon.LoadFromResourceName(HInstance, 'MAINICON');
   except

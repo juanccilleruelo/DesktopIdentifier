@@ -41,6 +41,8 @@ type
     FSeMargenInf: TSpinEdit;
     // Banda
     FChkBanda: TCheckBox;
+    FChkSyncColor: TCheckBox;
+    FLblBandaColor: TLabel;
     FSwBanda: TPanel;
     FLblBandaHex: TLabel;
     FBtnBandaColor: TButton;
@@ -74,11 +76,14 @@ type
     procedure CrearTabBanda;
     procedure ActualizarVista;
     procedure PintarVista(Sender: TObject);
+    procedure AjustarFuentesPestanas(AControl: TWinControl);
     procedure TextoCambiado(Sender: TObject);
     procedure CambiarColorCartel(Sender: TObject);
     procedure CambiarColorTexto(Sender: TObject);
     procedure CambiarColorBanda(Sender: TObject);
     procedure CambiarColorTextoBanda(Sender: TObject);
+    procedure CambioSincronizarColor(Sender: TObject);
+    procedure AjustarControlesColorBanda;
     procedure CambioTamano(Sender: TObject);
     procedure CambioOpacidad(Sender: TObject);
     procedure CambioOpacidadTexto(Sender: TObject);
@@ -115,6 +120,9 @@ type
   end;
 
 implementation
+
+type
+  TControlAccess = class(TControl);
 
 function RgbATColor(C: TRgb): TColor;
 begin
@@ -163,6 +171,8 @@ begin
   FColor := FAjustes.Color;
   FColorTexto := FAjustes.ColorTexto;
   FColorBanda := FAjustes.BandaColor;
+  if FAjustes.BandaColorSincronizado then
+    FColorBanda := FColor;
   FColorTextoBanda := FAjustes.BandaColorTexto;
   FColorPersonalizado := not ColorAutomatico;
 
@@ -270,6 +280,9 @@ begin
   FPages := TPageControl.Create(Self);
   FPages.Parent := Self;
   FPages.SetBounds(16, 76, 588, 336);
+  FPages.Font.Name := 'Segoe UI';
+  FPages.Font.Size := 10;
+  FPages.Font.Style := [fsBold];
 
   FTabCartel := TTabSheet.Create(Self);
   FTabCartel.PageControl := FPages;
@@ -281,6 +294,9 @@ begin
 
   CrearTabCartel;
   CrearTabBanda;
+
+  AjustarFuentesPestanas(FPages);
+  AjustarControlesColorBanda;
 
   FPages.ActivePage := FTabCartel;
 
@@ -352,7 +368,7 @@ begin
 
   FEdTexto := TEdit.Create(Self);
   FEdTexto.Parent := FTabCartel;
-  FEdTexto.MaxLength := 4;
+  FEdTexto.MaxLength := 0;
   FEdTexto.Text := FAjustes.Texto;
   FEdTexto.SetBounds(122, 13, 80, 24);
   FEdTexto.OnChange := TextoCambiado;
@@ -379,6 +395,7 @@ begin
   FLblCartelHex.Parent := FTabCartel;
   FLblCartelHex.Caption := RgbAHex(FColor);
   FLblCartelHex.Font.Name := 'Consolas';
+  FLblCartelHex.ParentFont := False;
   FLblCartelHex.Font.Size := 10;
   FLblCartelHex.Font.Style := [fsBold];
   FLblCartelHex.SetBounds(176, 51, 70, 20);
@@ -405,6 +422,7 @@ begin
   FLblTextoHex.Parent := FTabCartel;
   FLblTextoHex.Caption := RgbAHex(FColorTexto);
   FLblTextoHex.Font.Name := 'Consolas';
+  FLblTextoHex.ParentFont := False;
   FLblTextoHex.Font.Size := 10;
   FLblTextoHex.Font.Style := [fsBold];
   FLblTextoHex.SetBounds(176, 85, 70, 20);
@@ -452,6 +470,7 @@ begin
   FLblOpacidad.Parent := FTabCartel;
   FLblOpacidad.Caption := IntToStr(FTbOpacidad.Position) + ' %';
   FLblOpacidad.Font.Style := [fsBold];
+  FLblOpacidad.ParentFont := False;
   FLblOpacidad.SetBounds(388, 155, 50, 18);
 
   L := TLabel.Create(Self);
@@ -472,6 +491,7 @@ begin
   FLblOpacidadTexto.Parent := FTabCartel;
   FLblOpacidadTexto.Caption := IntToStr(FTbOpacidadTexto.Position) + ' %';
   FLblOpacidadTexto.Font.Style := [fsBold];
+  FLblOpacidadTexto.ParentFont := False;
   FLblOpacidadTexto.SetBounds(388, 189, 50, 18);
 
   L := TLabel.Create(Self);
@@ -492,6 +512,7 @@ begin
   FLblEsquinas.Parent := FTabCartel;
   FLblEsquinas.Caption := IntToStr(FTbEsquinas.Position) + ' %';
   FLblEsquinas.Font.Style := [fsBold];
+  FLblEsquinas.ParentFont := False;
   FLblEsquinas.SetBounds(388, 223, 50, 18);
 
   L := TLabel.Create(Self);
@@ -534,14 +555,21 @@ begin
   FChkBanda.Checked := FAjustes.BandaActiva;
   FChkBanda.OnClick := CambioBanda;
 
-  L := TLabel.Create(Self);
-  L.Parent := FTabBanda;
-  L.Caption := Texto(txtBandColor);
-  L.SetBounds(8, 49, 140, 18);
+  FChkSyncColor := TCheckBox.Create(Self);
+  FChkSyncColor.Parent := FTabBanda;
+  FChkSyncColor.Caption := Texto(txtSyncColor);
+  FChkSyncColor.SetBounds(8, 42, 540, 22);
+  FChkSyncColor.Checked := FAjustes.BandaColorSincronizado;
+  FChkSyncColor.OnClick := CambioSincronizarColor;
+
+  FLblBandaColor := TLabel.Create(Self);
+  FLblBandaColor.Parent := FTabBanda;
+  FLblBandaColor.Caption := Texto(txtBandColor);
+  FLblBandaColor.SetBounds(8, 79, 140, 18);
 
   FSwBanda := TPanel.Create(Self);
   FSwBanda.Parent := FTabBanda;
-  FSwBanda.SetBounds(150, 45, 48, 26);
+  FSwBanda.SetBounds(150, 75, 48, 26);
   FSwBanda.BevelOuter := bvNone;
   FSwBanda.Color := RgbATColor(FColorBanda);
   FSwBanda.StyleElements := [];
@@ -550,24 +578,25 @@ begin
   FLblBandaHex.Parent := FTabBanda;
   FLblBandaHex.Caption := RgbAHex(FColorBanda);
   FLblBandaHex.Font.Name := 'Consolas';
+  FLblBandaHex.ParentFont := False;
   FLblBandaHex.Font.Size := 10;
   FLblBandaHex.Font.Style := [fsBold];
-  FLblBandaHex.SetBounds(204, 49, 70, 20);
+  FLblBandaHex.SetBounds(204, 79, 70, 20);
 
   FBtnBandaColor := TButton.Create(Self);
   FBtnBandaColor.Parent := FTabBanda;
   FBtnBandaColor.Caption := Texto(txtChange);
-  FBtnBandaColor.SetBounds(278, 43, 110, 28);
+  FBtnBandaColor.SetBounds(278, 73, 110, 28);
   FBtnBandaColor.OnClick := CambiarColorBanda;
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
   L.Caption := Texto(txtTextColor);
-  L.SetBounds(8, 83, 140, 18);
+  L.SetBounds(8, 113, 140, 18);
 
   FSwTextoBanda := TPanel.Create(Self);
   FSwTextoBanda.Parent := FTabBanda;
-  FSwTextoBanda.SetBounds(150, 79, 48, 26);
+  FSwTextoBanda.SetBounds(150, 109, 48, 26);
   FSwTextoBanda.BevelOuter := bvNone;
   FSwTextoBanda.Color := RgbATColor(FColorTextoBanda);
   FSwTextoBanda.StyleElements := [];
@@ -576,20 +605,21 @@ begin
   FLblTextoBandaHex.Parent := FTabBanda;
   FLblTextoBandaHex.Caption := RgbAHex(FColorTextoBanda);
   FLblTextoBandaHex.Font.Name := 'Consolas';
+  FLblTextoBandaHex.ParentFont := False;
   FLblTextoBandaHex.Font.Size := 10;
   FLblTextoBandaHex.Font.Style := [fsBold];
-  FLblTextoBandaHex.SetBounds(204, 83, 70, 20);
+  FLblTextoBandaHex.SetBounds(204, 113, 70, 20);
 
   FBtnTextoBandaColor := TButton.Create(Self);
   FBtnTextoBandaColor.Parent := FTabBanda;
   FBtnTextoBandaColor.Caption := Texto(txtChange);
-  FBtnTextoBandaColor.SetBounds(278, 77, 110, 28);
+  FBtnTextoBandaColor.SetBounds(278, 107, 110, 28);
   FBtnTextoBandaColor.OnClick := CambiarColorTextoBanda;
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
   L.Caption := Texto(txtBandHeight);
-  L.SetBounds(8, 117, 140, 18);
+  L.SetBounds(8, 147, 140, 18);
 
   FTbAlto := TTrackBar.Create(Self);
   FTbAlto.Parent := FTabBanda;
@@ -597,37 +627,38 @@ begin
   FTbAlto.Max := 20;
   FTbAlto.Frequency := 1;
   FTbAlto.Position := Round(FAjustes.BandaAlto * 100);
-  FTbAlto.SetBounds(150, 113, 220, 30);
+  FTbAlto.SetBounds(150, 143, 220, 30);
   FTbAlto.OnChange := CambioAlto;
 
   FLblAlto := TLabel.Create(Self);
   FLblAlto.Parent := FTabBanda;
   FLblAlto.Caption := IntToStr(FTbAlto.Position) + ' %';
   FLblAlto.Font.Style := [fsBold];
-  FLblAlto.SetBounds(378, 119, 190, 18);
+  FLblAlto.ParentFont := False;
+  FLblAlto.SetBounds(378, 149, 190, 18);
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
   L.Caption := Texto(txtBandText);
-  L.SetBounds(8, 151, 140, 18);
+  L.SetBounds(8, 181, 140, 18);
 
   FEdTextoBanda := TEdit.Create(Self);
   FEdTextoBanda.Parent := FTabBanda;
-  FEdTextoBanda.MaxLength := 20;
+  FEdTextoBanda.MaxLength := 0;
   FEdTextoBanda.Text := FAjustes.BandaTexto;
-  FEdTextoBanda.SetBounds(150, 147, 220, 24);
+  FEdTextoBanda.SetBounds(150, 177, 220, 24);
   FEdTextoBanda.OnChange := CambioTextoBanda;
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
   L.Caption := Texto(txtBandTextHint);
   L.Font.Color := RGB(110, 110, 110);
-  L.SetBounds(378, 151, 150, 18);
+  L.SetBounds(378, 181, 150, 18);
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
   L.Caption := Texto(txtBandAlignment);
-  L.SetBounds(8, 185, 140, 18);
+  L.SetBounds(8, 215, 140, 18);
 
   FCbAlineacion := TComboBox.Create(Self);
   FCbAlineacion.Parent := FTabBanda;
@@ -636,20 +667,65 @@ begin
   FCbAlineacion.Items.Add(Texto(txtAlignCenter));
   FCbAlineacion.Items.Add(Texto(txtAlignLeft));
   FCbAlineacion.ItemIndex := IndiceDeAlineacion(FAjustes.BandaAlineacion);
-  FCbAlineacion.SetBounds(150, 181, 120, 24);
+  FCbAlineacion.SetBounds(150, 211, 120, 24);
   FCbAlineacion.OnChange := CambioBanda;
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
   L.Caption := Texto(txtBandNoteMonitors);
   L.Font.Color := RGB(110, 110, 110);
-  L.SetBounds(8, 221, 540, 18);
+  L.SetBounds(8, 251, 540, 18);
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
   L.Caption := Texto(txtBandNoteReapply);
   L.Font.Color := RGB(110, 110, 110);
-  L.SetBounds(8, 245, 540, 18);
+  L.SetBounds(8, 275, 540, 18);
+end;
+
+procedure TConfigForm.AjustarFuentesPestanas(AControl: TWinControl);
+var
+  I: Integer;
+  C: TControl;
+begin
+  for I := 0 to AControl.ControlCount - 1 do
+  begin
+    C := AControl.Controls[I];
+    if C is TTabSheet then
+      AjustarFuentesPestanas(TWinControl(C))
+    else
+    begin
+      if (C <> FLblCartelHex) and (C <> FLblTextoHex) and
+         (C <> FLblBandaHex) and (C <> FLblTextoBandaHex) and
+         (C <> FLblOpacidad) and (C <> FLblOpacidadTexto) and
+         (C <> FLblEsquinas) and (C <> FLblAlto) then
+      begin
+        TControlAccess(C).ParentFont := False;
+        TControlAccess(C).Font.Assign(Self.Font);
+      end;
+      if C is TWinControl then
+        AjustarFuentesPestanas(TWinControl(C));
+    end;
+  end;
+end;
+
+procedure TConfigForm.AjustarControlesColorBanda;
+var
+  Habilitado: Boolean;
+begin
+  Habilitado := not FChkSyncColor.Checked;
+  FLblBandaColor.Enabled := Habilitado;
+  FSwBanda.Enabled := Habilitado;
+  FLblBandaHex.Enabled := Habilitado;
+  FBtnBandaColor.Enabled := Habilitado;
+end;
+
+procedure TConfigForm.CambioSincronizarColor(Sender: TObject);
+begin
+  if FChkSyncColor.Checked then
+    FColorBanda := FColor;
+  AjustarControlesColorBanda;
+  ActualizarVista;
 end;
 
 function TConfigForm.AlineacionSeleccionada: string;
@@ -677,7 +753,11 @@ begin
   Result.MargenDerecha := FSeMargenDer.Value;
   Result.MargenInferior := FSeMargenInf.Value;
   Result.BandaActiva := FChkBanda.Checked;
-  Result.BandaColor := FColorBanda;
+  Result.BandaColorSincronizado := FChkSyncColor.Checked;
+  if FChkSyncColor.Checked then
+    Result.BandaColor := FColor
+  else
+    Result.BandaColor := FColorBanda;
   Result.BandaAlto := FTbAlto.Position / 100;
   Result.BandaTexto := Trim(FEdTextoBanda.Text);
   Result.BandaColorTexto := FColorTextoBanda;
@@ -707,6 +787,9 @@ var
   AltoPantalla: Integer;
   AnchoPantalla: Integer;
 begin
+  if FChkSyncColor.Checked then
+    FColorBanda := FColor;
+
   FHeader.Color := RgbATColor(FColor);
 
   FSwCartel.Color := RgbATColor(FColor);
@@ -734,7 +817,8 @@ procedure TConfigForm.PintarVista(Sender: TObject);
 var
   G: TGPGraphics;
   R: TRect;
-  Ancho, Alto, BandH, Bt, Bx, By: Integer;
+  Ancho, Alto, BandH, Bt, Bw, Bx, By: Integer;
+  Escala: Single;
   Br: TGPLinearGradientBrush;
   Estilo: TBadgeStyle;
 begin
@@ -773,11 +857,20 @@ begin
       Bt := 36;
     if Bt > 90 then
       Bt := 90;
-    Bx := Ancho - Bt - 14;
+    Bw := AnchoDistintivo(Estilo.Texto, Estilo.Fuente, Bt);
+    if Bw > Ancho - 28 then
+    begin
+      Escala := (Ancho - 28) / Bw;
+      Bt := Round(Bt * Escala);
+      if Bt < 20 then
+        Bt := 20;
+      Bw := Ancho - 28;
+    end;
+    Bx := Ancho - Bw - 14;
     By := Alto - Bt - 12;
 
     G.SetSmoothingMode(SmoothingModeAntiAlias);
-    DibujarDistintivo(G, RF(Bx, By, Bt, Bt), Estilo);
+    DibujarDistintivo(G, RF(Bx, By, Bw, Bt), Estilo);
   finally
     G.Free;
   end;
@@ -831,6 +924,8 @@ end;
 
 procedure TConfigForm.CambiarColorBanda(Sender: TObject);
 begin
+  if FChkSyncColor.Checked then
+    Exit;
   if ElegirColor(FColorBanda) then
     ActualizarVista;
 end;

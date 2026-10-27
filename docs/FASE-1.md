@@ -145,7 +145,7 @@ configurator does this when applying).
 
 - Band color, height and text; badge and band text color.
 - **Reapply band** button if the user changes the wallpaper by hand.
-- Badge text of up to 4 characters with size adjustment.
+- Badge text of any length; the host window widens horizontally to fit it.
 - Consider a tray icon or host menu.
 - Phase 3: visible version, repair of orphan installations and guided update.
 

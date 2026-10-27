@@ -33,7 +33,7 @@ var
 
 function WndProc(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; forward;
 procedure Reposicionar(Forzar: Boolean); forward;
-procedure AplicarCapa(Px: Integer); forward;
+procedure AplicarCapa(Ancho, Alto: Integer); forward;
 
 function EnumMonitoresProc(hMon: HMONITOR; hdc: HDC; lprc: PRect;
   Datos: LPARAM): BOOL; stdcall;
@@ -95,7 +95,8 @@ var
   Info: TMonitorInfo;
   Dpi: Cardinal;
   Escala: Single;
-  Px, X, Y: Integer;
+  X, Y: Integer;
+  Ancho, Alto: Integer;
   WR: TRect;
   Cambio: Boolean;
 begin
@@ -114,34 +115,37 @@ begin
     Dpi := DpiDeVentana(FVentana);
   Escala := Dpi / 96;
 
-  Px := Round(FAjustes.Tamano * Escala);
-  if Px < 24 then
-    Px := 24;
+  Alto := Round(FAjustes.Tamano * Escala);
+  if Alto < 24 then
+    Alto := 24;
+  Ancho := AnchoDistintivo(FAjustes.Texto, FAjustes.Fuente, Alto);
+  if Ancho < Alto then
+    Ancho := Alto;
 
-  X := Info.rcWork.Right - Round(FAjustes.MargenDerecha * Escala) - Px;
-  Y := Info.rcWork.Bottom - Round(FAjustes.MargenInferior * Escala) - Px;
+  X := Info.rcWork.Right - Round(FAjustes.MargenDerecha * Escala) - Ancho;
+  Y := Info.rcWork.Bottom - Round(FAjustes.MargenInferior * Escala) - Alto;
 
   Cambio := Forzar;
   if not Cambio then
   begin
     if GetWindowRect(FVentana, WR) then
       Cambio := (WR.Left <> X) or (WR.Top <> Y) or
-        ((WR.Right - WR.Left) <> Px) or ((WR.Bottom - WR.Top) <> Px)
+        ((WR.Right - WR.Left) <> Ancho) or ((WR.Bottom - WR.Top) <> Alto)
     else
       Cambio := True;
   end;
 
   if Cambio then
   begin
-    SetWindowPos(FVentana, HWND_TOPMOST, X, Y, Px, Px, SWP_NOACTIVATE);
-    AplicarCapa(Px);
+    SetWindowPos(FVentana, HWND_TOPMOST, X, Y, Ancho, Alto, SWP_NOACTIVATE);
+    AplicarCapa(Ancho, Alto);
   end
   else
     SetWindowPos(FVentana, HWND_TOPMOST, 0, 0, 0, 0,
       SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
 end;
 
-procedure AplicarCapa(Px: Integer);
+procedure AplicarCapa(Ancho, Alto: Integer);
 var
   Estilo: TBadgeStyle;
   Bmp: TGPBitmap;
@@ -159,7 +163,7 @@ var
   S, D: PByte;
   X, Y, A: Integer;
 begin
-  if (FVentana = 0) or (Px < 1) then
+  if (FVentana = 0) or (Ancho < 1) or (Alto < 1) then
     Exit;
 
   AsegurarEstilos;
@@ -171,9 +175,9 @@ begin
   Estilo.OpacidadLetra := FAjustes.OpacidadLetra;
   Estilo.Esquinas := FAjustes.Esquinas;
   Estilo.Fuente := FAjustes.Fuente;
-  Estilo.Tamano := Px;
+  Estilo.Tamano := Alto;
 
-  Bmp := TGPBitmap.Create(Px, Px, PixelFormat32bppARGB);
+  Bmp := TGPBitmap.Create(Ancho, Alto, PixelFormat32bppARGB);
   try
     G := TGPGraphics.Create(Bmp);
     try
@@ -181,15 +185,15 @@ begin
       G.SetPixelOffsetMode(PixelOffsetModeHighQuality);
       G.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
       G.Clear(MakeColor(0, 0, 0, 0));
-      DibujarDistintivo(G, RF(0, 0, Px, Px), Estilo);
+      DibujarDistintivo(G, RF(0, 0, Ancho, Alto), Estilo);
     finally
       G.Free;
     end;
 
     FillChar(Bmi, SizeOf(Bmi), 0);
     Bmi.bmiHeader.biSize := SizeOf(TBitmapInfoHeader);
-    Bmi.bmiHeader.biWidth := Px;
-    Bmi.bmiHeader.biHeight := -Px;
+    Bmi.bmiHeader.biWidth := Ancho;
+    Bmi.bmiHeader.biHeight := -Alto;
     Bmi.bmiHeader.biPlanes := 1;
     Bmi.bmiHeader.biBitCount := 32;
     Bmi.bmiHeader.biCompression := BI_RGB;
@@ -202,18 +206,18 @@ begin
         Exit;
 
       try
-        Bmp.LockBits(MakeRect(0, 0, Px, Px), ImageLockModeRead,
+        Bmp.LockBits(MakeRect(0, 0, Ancho, Alto), ImageLockModeRead,
           PixelFormat32bppARGB, Data);
         try
           SrcRow := PByte(Data.Scan0);
           if Data.Stride < 0 then
-            Inc(SrcRow, NativeInt(Px - 1) * (-Data.Stride));
+            Inc(SrcRow, NativeInt(Alto - 1) * (-Data.Stride));
           DstRow := PByte(Bits);
-          for Y := 0 to Px - 1 do
+          for Y := 0 to Alto - 1 do
           begin
             S := SrcRow;
             D := DstRow;
-            for X := 0 to Px - 1 do
+            for X := 0 to Ancho - 1 do
             begin
               // UpdateLayeredWindow espera alfa premultiplicado.
               A := S[3];
@@ -237,7 +241,7 @@ begin
               Inc(D, 4);
             end;
             Inc(SrcRow, Data.Stride);
-            Inc(DstRow, Px * 4);
+            Inc(DstRow, Ancho * 4);
           end;
         finally
           Bmp.UnlockBits(Data);
@@ -259,8 +263,8 @@ begin
             end;
             PtSrc.X := 0;
             PtSrc.Y := 0;
-            Sz.cx := Px;
-            Sz.cy := Px;
+            Sz.cx := Ancho;
+            Sz.cy := Alto;
 
             Blend.BlendOp := AC_SRC_OVER;
             Blend.BlendFlags := 0;

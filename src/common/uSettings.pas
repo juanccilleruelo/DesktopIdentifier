@@ -30,6 +30,7 @@ type
     Fuente: string;
     // Banda
     BandaActiva: Boolean;
+    BandaColorSincronizado: Boolean;
     BandaColor: TRgb;
     BandaAlto: Double;
     BandaTexto: string;
@@ -64,6 +65,7 @@ begin
   Result.Esquinas := 0.24;
   Result.Fuente := 'Segoe UI';
   Result.BandaActiva := True;
+  Result.BandaColorSincronizado := True;
   Result.BandaColor := $001473E6;
   Result.BandaAlto := 0.08;
   Result.BandaTexto := '';
@@ -87,8 +89,6 @@ begin
   Result.Texto := Trim(Result.Texto);
   if Result.Texto = '' then
     Result.Texto := 'A';
-  if Length(Result.Texto) > 4 then
-    Result.Texto := Copy(Result.Texto, 1, 4);
 
   Result.Fuente := Trim(Result.Fuente);
   if Result.Fuente = '' then
@@ -104,8 +104,6 @@ begin
 
   Result.BandaAlto := EnsureRange(Result.BandaAlto, 0.02, 0.20);
   Result.BandaTexto := Trim(Result.BandaTexto);
-  if Length(Result.BandaTexto) > 20 then
-    Result.BandaTexto := Copy(Result.BandaTexto, 1, 20);
 
   Result.BandaAlineacion := LowerCase(Trim(Result.BandaAlineacion));
   if (Result.BandaAlineacion <> 'derecha') and
@@ -283,6 +281,8 @@ var
     begin
       if (K = 'banda_activa') or ((Sec = 'banda') and (K = 'activa')) then
         Result.BandaActiva := ABool(V, Result.BandaActiva)
+      else if (Sec = 'banda') and (K = 'color_sincronizado') then
+        Result.BandaColorSincronizado := ABool(V, Result.BandaColorSincronizado)
       else if (K = 'banda_alto') or ((Sec = 'banda') and (K = 'alto')) then
         Result.BandaAlto := ADouble(V, Result.BandaAlto)
       else if (K = 'banda_texto') or ((Sec = 'banda') and (K = 'texto')) then
@@ -385,6 +385,10 @@ begin
     T := T + 'activa=1' + sLineBreak
   else
     T := T + 'activa=0' + sLineBreak;
+  if A.BandaColorSincronizado then
+    T := T + 'color_sincronizado=1' + sLineBreak
+  else
+    T := T + 'color_sincronizado=0' + sLineBreak;
   T := T + 'color=' + RgbAHex(A.BandaColor) + sLineBreak;
   T := T + 'alto=' + FloatToStr(A.BandaAlto, FormatoInv) + sLineBreak;
   T := T + 'texto=' + A.BandaTexto + sLineBreak;

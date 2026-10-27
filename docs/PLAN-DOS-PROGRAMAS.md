@@ -133,7 +133,7 @@ alineacion=derecha
 
 | Key | Type | Range / values | Notes |
 |---|---|---|---|
-| `cartel.texto` | text | 1–4 characters | If empty, `A`. Replaces `letra` |
+| `cartel.texto` | text | any text | If empty, `A`. Replaces `letra` |
 | `cartel.color` | color | `#RRGGBB` | Panel and border color |
 | `cartel.color_texto` | color | `#RRGGBB` | Badge text color |
 | `cartel.tamano` | integer | 90–280 | Pixels at 96 dpi; the host scales by DPI |
@@ -145,9 +145,10 @@ alineacion=derecha
 | `cartel.esquinas` | real | 0.00–0.50 | Corner radius, fraction of the size |
 | `cartel.fuente` | text | — | Default `Segoe UI` |
 | `banda.activa` | 0/1 | — | Whether the band is applied |
-| `banda.color` | color | `#RRGGBB` | Independent of the badge color |
+| `banda.color_sincronizado` | 0/1 | — | 1 = band color follows the badge color (default) |
+| `banda.color` | color | `#RRGGBB` | Used when synchronization is off |
 | `banda.alto` | real | 0.02–0.20 | Fraction of the screen height |
-| `banda.texto` | text | 0–20 characters | Empty = no text |
+| `banda.texto` | text | any text | Empty = no text |
 | `banda.color_texto` | color | `#RRGGBB` | White by default |
 | `banda.alineacion` | text | `derecha`, `centro`, `izquierda` | Text position |
 
@@ -310,7 +311,7 @@ It is the only exception to "do not copy again", and it only happens when updati
 
 | Improvement | INI key | UI | Notes |
 |---|---|---|---|
-| Configurable badge text | `cartel.texto` | Text field (1–4) | Default letter A/B |
+| Configurable badge text | `cartel.texto` | Text field (any length) | Default letter A/B; the badge widens |
 | Badge color | `cartel.color` | Color picker | Already existed |
 | Badge text color | `cartel.color_texto` | Color picker | New, cheap |
 | Size | `cartel.tamano` | Numeric / slider | Already existed |
@@ -452,7 +453,7 @@ items.
 | 2 | Installation | Explicit **Install** button; **Apply** requires being installed |
 | 3 | Uninstall | Dialog with a **Keep the settings** checkbox, checked by default |
 | 4 | Multiple monitors | Replication of the band on all of them is accepted; the badge goes to the chosen monitor |
-| 5 | Badge text | 1–4 characters (phase 2) |
+| 5 | Badge text | Any text; the host window widens horizontally (later change) |
 | 6 | System tray | Host without icon; managed from the configurator (phase 1) |
 | 7 | Wallpaper watchdog | Manual: **Reapply band** button in phase 2 |
 | 8 | Host name | `DesktopIdentifierHost.exe` |

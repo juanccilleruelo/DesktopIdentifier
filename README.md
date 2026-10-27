@@ -7,9 +7,10 @@ host:
 
 - **Color band** at the top of the desktop, built into the wallpaper, with
   configurable color, height, text and alignment.
-- **Floating badge** with the text you want (1–4 characters), panel and text
-  color, size, opacities and corners; semi-transparent, always on top and it
-  **does not capture the mouse**: clicks pass through the badge.
+- **Floating badge** with any text you want; the window widens horizontally to
+  fit it. Panel and text color, size, opacities and corners; semi-transparent,
+  always on top and it **does not capture the mouse**: clicks pass through the
+  badge.
 - **Settings** on two tabs (Badge and Band), with a faithful preview and a
   **Reapply band** button.
 - **Guided update** of the startup program and detection of incomplete
@@ -203,6 +204,7 @@ fuente=Segoe UI
 
 [banda]
 activa=1
+color_sincronizado=1
 color=#1473E6
 alto=0.08
 texto=
@@ -212,7 +214,7 @@ alineacion=derecha
 
 | Key | Values | Notes |
 |---|---|---|
-| `cartel.texto` | 1–4 characters | Default `A`; the host adjusts the font size if it does not fit |
+| `cartel.texto` | Any text | Default `A`; the host widens the badge to fit it |
 | `cartel.color` | `#RRGGBB` | Panel and border |
 | `cartel.color_texto` | `#RRGGBB` | Badge text color |
 | `cartel.tamano` | 90–280 | Pixels at 96 dpi; the host scales by DPI |
@@ -223,11 +225,16 @@ alineacion=derecha
 | `cartel.esquinas` | 0.00–0.50 | Fraction of the size |
 | `cartel.fuente` | text | Default `Segoe UI` |
 | `banda.activa` | 0/1 | |
-| `banda.color` | `#RRGGBB` | Independent of the badge color |
+| `banda.color_sincronizado` | 0/1 | 1 = the band color follows the badge color; the band color controls are disabled |
+| `banda.color` | `#RRGGBB` | Used when synchronization is off |
 | `banda.alto` | 0.02–0.20 | Fraction of the screen height |
-| `banda.texto` | 0–20 characters | Empty = no text; different from the badge text |
+| `banda.texto` | Any text | Empty = no text; different from the badge text |
 | `banda.color_texto` | `#RRGGBB` | Band text color |
 | `banda.alineacion` | `derecha`, `centro`, `izquierda` | Band text position |
+
+By default the band color follows the badge panel color. The **Band** tab has
+a *Synchronize badge and band colors* checkbox; while it is checked, the band
+color controls are disabled. Uncheck it to choose a different band color.
 
 Out-of-range values are clamped; a missing or corrupt INI is equivalent to the
 default values. The configurator saves with **atomic writes** (temporary file +
@@ -255,8 +262,9 @@ badge and band, `banda_*` → `[banda]`).
   WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE` and `HWND_TOPMOST`.
 - Drawing with GDI+ into an ARGB bitmap and copy to a **premultiplied 32 bpp
   DIB**, which is what `UpdateLayeredWindow` expects.
-- The badge text is automatically adjusted so that 1–4 characters fit in the
-  panel; the text color comes from `cartel.color_texto`.
+- The badge text is not limited. The window widens horizontally to fit it; a
+  single character keeps the square shape. The text color comes from
+  `cartel.color_texto`.
 - The band text is also reduced if it does not fit in width.
 - 3 s `SetTimer` that reasserts the topmost order and repositions if the work
   area, the monitor or the DPI changed.
@@ -299,8 +307,8 @@ with the Win32 API and the settings use their own record.
 
 | | Size | RAM |
 |---|---|---|
-| Host (Release) | **484,352 B** (~470 KB) | working set ~0.3 MB; private ~3.2 MB |
-| Configurator (Release) | **3,112,448 B** (~3.0 MB) | VCL, only when opened |
+| Host (Release) | **485,888 B** (~470 KB) | working set ~0.3 MB; private ~3.2 MB |
+| Configurator (Release) | **3,115,008 B** (~3.0 MB) | VCL, only when opened |
 | Previous version (single VCL) | ~2.6 MB | ~14.5 MB always in memory |
 
 Without the working-set trim, the host shows ~11 MB of working set due to the

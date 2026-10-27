@@ -103,8 +103,8 @@ band: the text is reduced and remains complete, with margins and centered.
 
 | | Size | RAM |
 |---|---|---|
-| Host 1.1.0.0 | **484,352 B** | working set ~0.9 MB; private ~3.2 MB |
-| Configurator 1.1.0.0 | **3,112,448 B** | VCL, only when opened |
+| Host 1.1.0.0 | **485,888 B** | working set ~0.9 MB; private ~3.2 MB |
+| Configurator 1.1.0.0 | **3,115,008 B** | VCL, only when opened |
 
 The update replaced the 2.76 MB Debug host with the 440 KB Release one. The
 localization change later added the language tables; see section 7.
@@ -166,12 +166,35 @@ Checks: with the Windows locale set to `es-ES`, `en-US`, `fr-FR`, `it-IT` and
 `de-DE`, the window title changed to `Configuración`, `Settings`, `Paramètres`,
 `Impostazioni` and `Einstellungen`; the Spanish, English, French, German and
 Italian layouts were inspected. The host window title follows the same table.
-The configurator measures **3,112,448 B**; the host **484,352 B**. The version
+The configurator measures **3,115,008 B**; the host **485,888 B**. The version
 remains 1.1.0.0; the installed host was replaced with the new binary.
 
 ---
 
-## 8. Pending (optional)
+## 8. Later changes — text, tabs and colors (27/10/2026)
+
+- Badge and band text no longer have a length limit: the edit fields use
+  `MaxLength = 0` and `AjustesValidos` does not truncate them. The host measures
+  the badge text and widens the window horizontally; a single character keeps
+  the square shape. The preview also grows and is scaled down only when it
+  would not fit in the preview area.
+- The tab captions use a bold, 10 pt font (`TPageControl.Font`); the controls
+  inside the tabs keep their normal 9 pt font, except the colour hex labels and
+  the percentage labels.
+- The **Band** tab has a *Synchronize badge and band colors* checkbox, checked
+  by default. While it is checked, the band colour follows the badge colour and
+  the band colour controls are disabled. The state is stored as
+  `banda.color_sincronizado` (default `1`); the INI keeps the band colour for
+  when synchronization is off.
+
+Checks: a badge text of `A` produced a 170 × 170 window; `DESKTOP-A` produced
+706 × 170 with the full text; the Band tab showed the sync checkbox checked and
+the band colour controls disabled. The configurator measures **3,115,008 B**;
+the host **485,888 B**.
+
+---
+
+## 9. Pending (optional)
 
 - Tray icon or host menu.
 - Band gradient/shadow and color copy between badge and band.

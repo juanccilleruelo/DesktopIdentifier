@@ -17,7 +17,7 @@ type
     txtTabBadge, txtTabBand,
     txtBadgeText, txtBadgeTextHint, txtPanelColor, txtTextColor, txtChange,
     txtSize, txtPanelOpacity, txtTextOpacity, txtCornerRadius, txtMargins,
-    txtBandEnable, txtBandColor, txtBandHeight, txtBandText, txtBandTextHint,
+    txtBandEnable, txtSyncColor, txtBandColor, txtBandHeight, txtBandText, txtBandTextHint,
     txtBandAlignment, txtAlignRight, txtAlignCenter, txtAlignLeft,
     txtBandNoteMonitors, txtBandNoteReapply,
     txtInstall, txtApply, txtUninstall, txtReapply, txtCloseBadge, txtClose,
@@ -77,7 +77,7 @@ const
     // txtBadgeText
     ('Texto del cartel:', 'Badge text:', 'Texte du badge :', 'Testo del badge:', 'Kennzeichen-Text:'),
     // txtBadgeTextHint
-    ('1–4 caracteres', '1–4 characters', '1 à 4 caractères', '1–4 caratteri', '1–4 Zeichen'),
+    ('Sin límite', 'No limit', 'Sans limite', 'Senza limite', 'Kein Limit'),
     // txtPanelColor
     ('Color del panel:', 'Panel color:', 'Couleur du panneau :', 'Colore del pannello:', 'Panel-Farbe:'),
     // txtTextColor
@@ -100,6 +100,12 @@ const
      'Afficher la bande de couleur sur le bureau (fond d’écran)',
      'Mostra la banda colorata sul desktop (sfondo)',
      'Farbband auf dem Desktop anzeigen (Hintergrundbild)'),
+    // txtSyncColor
+    ('Sincronizar el color del cartel y la banda',
+     'Synchronize badge and band colors',
+     'Synchroniser les couleurs du badge et de la bande',
+     'Sincronizza i colori di badge e banda',
+     'Farben von Kennzeichen und Band synchronisieren'),
     // txtBandColor
     ('Color de la banda:', 'Band color:', 'Couleur de la bande :', 'Colore della banda:', 'Bandfarbe:'),
     // txtBandHeight

@@ -23,6 +23,7 @@ type
 
 function RF(X, Y, Ancho, Alto: Single): TGPRectF;
 function RoundedRectPath(const R: TGPRectF; Radio: Single): TGPGraphicsPath;
+function AnchoDistintivo(const Texto, Fuente: string; Alto: Integer): Integer;
 procedure DibujarDistintivo(G: TGPGraphics; const Area: TGPRectF;
   const Estilo: TBadgeStyle);
 
@@ -55,10 +56,63 @@ begin
   Result.CloseFigure;
 end;
 
+function AnchoDistintivo(const Texto, Fuente: string; Alto: Integer): Integer;
+var
+  Bmp: TGPBitmap;
+  G: TGPGraphics;
+  Fnt: TGPFont;
+  Fmt: TGPStringFormat;
+  Medida: TGPRectF;
+  S, F: string;
+  W: Single;
+begin
+  if Alto < 1 then
+    Alto := 1;
+  S := Texto;
+  if S = '' then
+    S := '?';
+  F := Fuente;
+  if F = '' then
+    F := 'Segoe UI';
+
+  Bmp := TGPBitmap.Create(1, 1, PixelFormat32bppARGB);
+  try
+    G := TGPGraphics.Create(Bmp);
+    try
+      Fnt := TGPFont.Create(WideString(F), Alto * 0.62, FontStyleBold, UnitPixel);
+      try
+        Fmt := TGPStringFormat.Create;
+        try
+          Fmt.SetFormatFlags(Integer(StringFormatFlagsNoWrap));
+          Fmt.SetAlignment(StringAlignmentCenter);
+          Fmt.SetLineAlignment(StringAlignmentCenter);
+          G.MeasureString(WideString(S), Length(S), Fnt,
+            RF(0, 0, 100000, 100000), Fmt, Medida);
+          W := Medida.Width + Alto * 0.40;
+          if W < Alto then
+            W := Alto;
+          if Length(S) <= 1 then
+            Result := Alto
+          else
+            Result := Ceil(W);
+        finally
+          Fmt.Free;
+        end;
+      finally
+        Fnt.Free;
+      end;
+    finally
+      G.Free;
+    end;
+  finally
+    Bmp.Free;
+  end;
+end;
+
 procedure DibujarDistintivo(G: TGPGraphics; const Area: TGPRectF;
   const Estilo: TBadgeStyle);
 var
-  Px, Inset, PenW, A1, A2, FontSize, Factor, MaxW, MaxH: Single;
+  Ancho, Alto, Inset, PenW, A1, A2, FontSize, Factor, MaxW, MaxH: Single;
   BordeA, AlphaLetra: Integer;
   R, TextR, Medida: TGPRectF;
   Path: TGPGraphicsPath;
@@ -69,13 +123,15 @@ var
   Sombra, PincelTexto: TGPSolidBrush;
   Fuente, Texto: string;
 begin
-  Px := Area.Width;
-  if Px <= 0 then
+  Ancho := Area.Width;
+  Alto := Area.Height;
+  if (Ancho <= 0) or (Alto <= 0) then
     Exit;
 
-  Inset := Max(1.5, Px * 0.018);
-  PenW := Max(1.5, Px * 0.016);
-  R := RF(Area.X + Inset, Area.Y + Inset, Px - Inset * 2, Px - Inset * 2);
+  Inset := Max(1.5, Alto * 0.018);
+  PenW := Max(1.5, Alto * 0.016);
+  R := RF(Area.X + Inset, Area.Y + Inset,
+    Ancho - Inset * 2, Alto - Inset * 2);
 
   A1 := Estilo.OpacidadPanel * 255;
   A2 := Estilo.OpacidadPanel * 0.72 * 255;
@@ -88,7 +144,7 @@ begin
   if A2 > 255 then
     A2 := 255;
 
-  Path := RoundedRectPath(R, Px * Estilo.Esquinas);
+  Path := RoundedRectPath(R, Alto * Estilo.Esquinas);
   try
     Br := TGPLinearGradientBrush.Create(R,
       MezclaArgb(Estilo.Color, RgbBlanco, 0.28, Byte(Round(A1))),
@@ -123,18 +179,18 @@ begin
     Fmt.SetLineAlignment(StringAlignmentCenter);
     Fmt.SetFormatFlags(Integer(StringFormatFlagsNoWrap));
 
-    TextR := RF(Area.X, Area.Y + Px * 0.02, Px, Px);
-    FontSize := Px * 0.62;
+    TextR := RF(Area.X, Area.Y + Alto * 0.02, Ancho, Alto);
+    FontSize := Alto * 0.62;
     Fnt := TGPFont.Create(WideString(Fuente), FontSize, FontStyleBold, UnitPixel);
     try
       // Medir con un rect grande: si se mide con el rect del cartel, GDI+
       // devuelve la anchura recortada (no la real), el factor de ajuste sale 1
       // y DrawString corta los ultimos caracteres.
       G.MeasureString(WideString(Texto), Length(Texto), Fnt,
-        RF(Area.X, Area.Y, Px * 10, Px * 10), Fmt, Medida);
+        RF(Area.X, Area.Y, Ancho * 10, Alto * 10), Fmt, Medida);
 
-      MaxW := Px * 0.66;
-      MaxH := Px * 0.58;
+      MaxW := Ancho - Inset * 2 - Alto * 0.08;
+      MaxH := Alto - Inset * 2 - Alto * 0.04;
       Factor := 1;
       if (Medida.Width > MaxW) and (Medida.Width > 0) then
         Factor := MaxW / Medida.Width;
@@ -151,7 +207,7 @@ begin
         MakeColor(Byte(Round(Estilo.OpacidadLetra * 0.42 * 255)), 0, 0, 0));
       try
         G.DrawString(WideString(Texto), Length(Texto), Fnt,
-          RF(Area.X, Area.Y + Px * 0.05, Px, Px), Fmt, Sombra);
+          RF(Area.X, Area.Y + Alto * 0.05, Ancho, Alto), Fmt, Sombra);
       finally
         Sombra.Free;
       end;

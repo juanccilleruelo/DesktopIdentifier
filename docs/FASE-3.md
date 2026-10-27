@@ -1,152 +1,180 @@
-# Fase 3 — Versión, actualización y reparación
+# Phase 3 — Version, update and repair
 
-**Estado:** implementada y probada
-**Fecha:** 26/10/2026
+**Status:** implemented and tested
+**Date:** 26/10/2026
 **Base:** [PLAN-DOS-PROGRAMAS.md](PLAN-DOS-PROGRAMAS.md)
 
 ---
 
-## 1. Qué se ha añadido
+## 1. What has been added
 
-### Versión visible
+### Visible version
 
-- La versión de cada ejecutable vive en sus recursos (`*Resources.rc`) y se
-  lee con `GetFileVersionInfo` (`uVersion.pas`).
-- El configurador muestra **su** versión en la cabecera
-  (`… · v1.1.0.0`) y la **del host instalado** en la línea de estado
-  (`Instalado · host 1.1.0.0 · …`).
-- `[general] version` del INI sigue siendo 2; la versión del producto es
-  independiente.
+- The version of each executable lives in its resources (`*Resources.rc`) and is
+  read with `GetFileVersionInfo` (`uVersion.pas`).
+- The configurator shows **its** version in the header
+  (`… · v1.1.0.0`) and the **installed host's** in the status line
+  (`Installed · host 1.1.0.0 · …`).
+- The INI `[general] version` is still 2; the product version is independent.
 
-### Actualización guiada
+### Guided update
 
-- Al abrir la ventana se comparan las versiones del host instalado y del host
-  que acompaña al configurador.
-- Si la disponible es mayor, el estado pasa a
-  `Instalado · host 1.0.0.0 → 1.1.0.0 disponible`, el botón cambia a
-  **Actualizar** y se explica en la línea de mensajes.
-- Al pulsar **Actualizar** se pide confirmación; después se cierra el cartel, se
-  copia el host nuevo, se relanza y se regenera la banda con la configuración
-  actual.
-- **El INI y la entrada de arranque no se tocan.** La actualización es la única
-  excepción a «Aplicar no copia».
-- `ActualizarHost` vive en `uInstall.pas` y no escribe ni el INI ni el registro.
+- When the window opens, the versions of the installed host and of the host
+  that comes with the configurator are compared.
+- If the available one is higher, the status changes to
+  `Installed · host 1.0.0.0 → 1.1.0.0 available`, the button changes to
+  **Update** and it is explained in the message line.
+- Pressing **Update** asks for confirmation; then the badge is closed, the new
+  host is copied, it is relaunched and the band is regenerated with the current
+  settings.
+- **The INI and the startup entry are not touched.** The update is the only
+  exception to "Apply does not copy".
+- `ActualizarHost` lives in `uInstall.pas` and writes neither the INI nor the
+  registry.
 
-### Detección y reparación de instalaciones incompletas
+### Detection and repair of incomplete installations
 
-`EstadoInstalacion` comprueba, además de lo anterior:
+`EstadoInstalacion` checks, in addition to the above:
 
-| Situación | Mensaje |
+| Situation | Message |
 |---|---|
-| Host instalado sin entrada de arranque | «Falta el arranque automático.» |
-| `Run` apunta a otra ruta | «La entrada de arranque apunta a otra ruta.» |
-| Host instalado sin INI | «Falta el archivo de configuración.» |
-| `Run` existe pero el host no | «El arranque apunta a un programa que ya no existe.» |
-| Carpeta con restos sin host | «Quedan restos de una instalación anterior.» |
-| Cartel en marcha sin instalar | «Hay un cartel en marcha que no está instalado.» |
+| Host installed without startup entry | "Automatic startup is missing." |
+| `Run` points to another path | "The startup entry points to another path." |
+| Host installed without INI | "The configuration file is missing." |
+| `Run` exists but the host does not | "Startup points to a program that no longer exists." |
+| Folder with leftovers but no host | "Leftovers of a previous installation remain." |
+| Badge running but not installed | "There is a badge running that is not installed." |
 
-La ventana muestra **Instalación incompleta · pulsa Reparar** y el botón pasa a
-**Reparar**, que vuelve a dejar la instalación completa (`Instalar` + `Aplicar`).
+The window shows **Incomplete installation · press Repair** and the button
+changes to **Repair**, which leaves the installation complete again
+(`Install` + `Apply`).
 
-### Texto de banda largo
+### Long band text
 
-`DibujarBanda` mide el texto con un rect grande y reduce la fuente si no cabe a
-lo ancho, con un mínimo de 6 px. Ya no se recorta un texto de 20 caracteres en
-una banda estrecha.
+`DibujarBanda` measures the text with a large rect and reduces the font if it
+does not fit in width, with a minimum of 6 px. A 20-character text in a narrow
+band is no longer clipped.
 
 ---
 
-## 2. Cambios de comportamiento
+## 2. Behavioral changes
 
-- Instalar / Actualizar / Reparar / Reinstalar comparten botón y cambian de
-  texto según el estado; el usuario no tiene que saber qué flujo toca.
-- La actualización pide confirmación y conserva la configuración y el arranque.
-- Reparar puede volver a escribir el INI con lo que haya cargado la ventana; si
-  el INI faltaba, se crea con los valores por defecto (no hay nada que
-  conservar).
-- La versión del producto pasa a **1.1.0.0** en los dos `.rc` y en
+- Install / Update / Repair / Reinstall share a button and change text according
+  to the state; the user does not need to know which flow applies.
+- The update asks for confirmation and preserves the settings and startup.
+- Repair may rewrite the INI with whatever the window has loaded; if the INI
+  was missing, it is created with the default values (there is nothing to
+  preserve).
+- The product version becomes **1.1.0.0** in both `.rc` files and in
   `VersionProducto`.
 
 ---
 
-## 3. Evidencias
+## 3. Evidence
 
-### Actualización 1.0.0.0 → 1.1.0.0
+### Update 1.0.0.0 → 1.1.0.0
 
-La máquina tenía instalado un host 1.0.0.0 de **2.763.410 B** (compilado en
-Debug desde el IDE) con la configuración `texto=text`.
+The machine had a 1.0.0.0 host of **2,763,410 B** installed (built in Debug from
+the IDE) with the `texto=text` setting.
 
-- La ventana mostró `Instalado · host 1.0.0.0 → 1.1.0.0 disponible`, botón
-  **Actualizar** y el aviso correspondiente.
-- Tras confirmar: host instalado **1.1.0.0**, **440.320 B**; proceso en marcha;
-  `Run` idéntico; INI con `texto=text`; banda regenerada.
-- La cabecera de la ventana mostró `v1.1.0.0`.
+- The window showed `Installed · host 1.0.0.0 → 1.1.0.0 available`, an
+  **Update** button and the corresponding notice.
+- After confirming: installed host **1.1.0.0**, **440,320 B**; process running;
+  `Run` identical; INI with `texto=text`; band regenerated.
+- The window header showed `v1.1.0.0`.
 
-### Reparación
+### Repair
 
-- **Sin `Run`:** botón **Reparar**, mensaje «Falta el arranque automático.»;
-  tras reparar, `Run` restaurado, host en marcha y `texto=text` conservado.
-- **`Run` a `C:\no-existe\...`:** botón **Reparar**; tras reparar, `Run`
-  apuntando al host instalado.
-- **Sin INI:** botón **Reparar**, mensaje «Falta el archivo de configuración.»;
-  se restauró el INI del usuario después de comprobar la detección.
+- **No `Run`:** **Repair** button, message "Automatic startup is missing.";
+  after repairing, `Run` restored, host running and `texto=text` preserved.
+- **`Run` to `C:\no-existe\...`:** **Repair** button; after repairing, `Run`
+  pointing to the installed host.
+- **No INI:** **Repair** button, message "The configuration file is missing.";
+  the user's INI was restored after checking the detection.
 
-### Texto largo
+### Long text
 
-Prueba de renderizado con `MÁQUINA DE PRODUCCIÓN` (20 caracteres) en una banda
-de 700 × 120 px: el texto se reduce y queda completo, con márgenes y centrado.
+Rendering test with `MÁQUINA DE PRODUCCIÓN` (20 characters) in a 700 × 120 px
+band: the text is reduced and remains complete, with margins and centered.
 
 ---
 
-## 4. Medidas
+## 4. Measurements
 
-| | Tamaño | RAM |
+| | Size | RAM |
 |---|---|---|
-| Host 1.1.0.0 | **440.320 B** | working set ~0,9 MB; privada ~3,2 MB |
-| Configurador 1.1.0.0 | **3.075.072 B** | VCL, solo al abrirse |
+| Host 1.1.0.0 | **484,352 B** | working set ~0.9 MB; private ~3.2 MB |
+| Configurator 1.1.0.0 | **3,112,448 B** | VCL, only when opened |
 
-La actualización sustituyó el host Debug de 2,76 MB por el Release de 440 KB.
+The update replaced the 2.76 MB Debug host with the 440 KB Release one. The
+localization change later added the language tables; see section 7.
 
 ---
 
-## 5. Capturas
+## 5. Screenshots
 
-Las capturas de la ventana final están en
-[docs/capturas/cartel.png](capturas/cartel.png) y
+The screenshots of the final window are in
+[docs/capturas/cartel.png](capturas/cartel.png) and
 [docs/capturas/banda.png](capturas/banda.png).
 
 ---
 
-## 6. Cambios posteriores — icono y barra de tareas (27/10/2026)
+## 6. Later changes — icon and taskbar (27/10/2026)
 
-El configurador pasa a comportarse como un programa normal en la barra de
-tareas; el host no cambia.
+The configurator now behaves like a normal program in the taskbar; the host does
+not change.
 
-- Se añadió `src/config/DesktopIdentifier.ico` (16, 20, 24, 32, 40, 48, 64,
-  128 y 256 px; 381.038 B) y se incrustó como `MAINICON` **solo** en
+- `src/config/DesktopIdentifier.ico` was added (16, 20, 24, 32, 40, 48, 64,
+  128 and 256 px; 381,038 B) and embedded as `MAINICON` **only** in
   `ConfigResources.rc`.
-- La ventana pasó de `bsDialog` a `bsSingle` con
-  `BorderIcons := [biSystemMenu, biMinimize]`. El motivo es que
-  `TCustomForm.CreateWnd` de VCL borra expresamente el icono cuando el
-  `BorderStyle` es `bsDialog`.
-- Se fuerza `WS_EX_APPWINDOW` y se activa `ShowInTaskbar`; en `CreateWnd` se
-  fijan `WM_SETICON` con el icono grande y con una variante de 16 px para el
-  título.
-- El host sigue siendo `WS_EX_TOOLWINDOW`, sin `APPWINDOW`, sin icono propio y
-  sin botón en la barra de tareas.
+- The window changed from `bsDialog` to `bsSingle` with
+  `BorderIcons := [biSystemMenu, biMinimize]`. The reason is that VCL's
+  `TCustomForm.CreateWnd` explicitly clears the icon when `BorderStyle` is
+  `bsDialog`.
+- `WS_EX_APPWINDOW` is forced and `ShowInTaskbar` is enabled; in `CreateWnd`,
+  `WM_SETICON` is set with the large icon and with a 16 px variant for the
+  title.
+- The host is still `WS_EX_TOOLWINDOW`, without `APPWINDOW`, without its own
+  icon and without a taskbar button.
 
-Comprobaciones: `WM_GETICON` grande y pequeño distintos de cero,
-`WS_EX_APPWINDOW` activo, sin `WS_MAXIMIZEBOX` ni `WS_THICKFRAME`, y el botón
-con el icono visible en la barra de tareas. El configurador mide ahora
-**3.075.072 B**; el host sigue en **440.320 B**. La versión no cambia
-(1.1.0.0), porque el host no se ha tocado.
+Checks: `WM_GETICON` large and small different from zero, `WS_EX_APPWINDOW`
+active, without `WS_MAXIMIZEBOX` or `WS_THICKFRAME`, and the button with the
+icon visible in the taskbar. The configurator measured **3,075,072 B**; the host
+was still **440,320 B**. The version did not change (1.1.0.0), because that
+change did not touch the host.
 
 ---
 
-## 7. Pendiente (opcional)
+## 7. Later changes — localization (27/10/2026)
 
-- Icono en la bandeja o menú del host.
-- Degradado/sombra de la banda y copia de color entre cartel y banda.
-- Firma digital e icono propio del host, si se quiere.
+The UI now follows the Windows locale; the host is also localized.
 
-La lista obligatoria de la fase 3 está cerrada.
+- `src/common/Languages.pas` contains the tables for Spanish, English, French,
+  Italian and German. `GetUserDefaultLocaleName` decides: `es-*`, `fr-*`,
+  `it-*` and `de-*` select their language; any other locale selects English.
+  If the API fails, `GetUserDefaultUILanguage` is used as a fallback.
+- The configurator uses the unit for every caption, label, button, status
+  message, task dialog and installer/update/repair message.
+- The host uses it for its window title and for the error message shown if it
+  cannot start. It is still a tool window: no icon and no taskbar button.
+- The INI comments and the Markdown documentation are always in English. The
+  INI keys keep their names (`cartel`, `banda`, `texto`, etc.).
+- Adding a language means adding a column to the table and a case in the
+  detector; there is no environment variable or manual selector.
+
+Checks: with the Windows locale set to `es-ES`, `en-US`, `fr-FR`, `it-IT` and
+`de-DE`, the window title changed to `Configuración`, `Settings`, `Paramètres`,
+`Impostazioni` and `Einstellungen`; the Spanish, English, French, German and
+Italian layouts were inspected. The host window title follows the same table.
+The configurator measures **3,112,448 B**; the host **484,352 B**. The version
+remains 1.1.0.0; the installed host was replaced with the new binary.
+
+---
+
+## 8. Pending (optional)
+
+- Tray icon or host menu.
+- Band gradient/shadow and color copy between badge and band.
+- Digital signature and the host's own icon, if desired.
+
+The mandatory list of phase 3 is closed.

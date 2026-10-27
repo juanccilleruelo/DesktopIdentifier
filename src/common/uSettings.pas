@@ -361,8 +361,8 @@ begin
     ForceDirectories(ExtractFilePath(Archivo));
 
   T := '';
-  T := T + '; DesktopIdentifier - configuracion' + sLineBreak;
-  T := T + '; Se puede editar a mano. El host la relee al recibir RELOAD.' + sLineBreak;
+  T := T + '; DesktopIdentifier configuration' + sLineBreak;
+  T := T + '; You can edit this file by hand. The host reloads it when it receives RELOAD.' + sLineBreak;
   T := T + sLineBreak;
   T := T + '[general]' + sLineBreak;
   T := T + 'version=' + IntToStr(A.Version) + sLineBreak;

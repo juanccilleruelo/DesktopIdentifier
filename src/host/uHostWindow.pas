@@ -15,7 +15,7 @@ implementation
 uses
   Winapi.Messages, Winapi.MultiMon, System.SysUtils, System.Math, System.Types,
   Winapi.GDIPAPI, Winapi.GDIPOBJ,
-  uPaths, uSettings, uUtils, uBadgeRender;
+  uPaths, uSettings, uUtils, uBadgeRender, Languages;
 
 const
   TIMER_REPOSICIONAR   = 1;
@@ -374,7 +374,7 @@ begin
 
   FVentana := CreateWindowEx(
     WS_EX_LAYERED or WS_EX_TRANSPARENT or WS_EX_TOOLWINDOW or WS_EX_NOACTIVATE,
-    PChar(ClaseVentanaHost), PChar(NombreProducto), WS_POPUP,
+    PChar(ClaseVentanaHost), PChar(Texto(txtHostWindowTitle)), WS_POPUP,
     0, 0, 1, 1, 0, 0, HInst, nil);
   if FVentana = 0 then
     Exit;

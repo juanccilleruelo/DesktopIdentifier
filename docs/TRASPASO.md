@@ -1,180 +1,184 @@
-# Traspaso de contexto — DesktopIdentifier
+# Context handover — DesktopIdentifier
 
-**Fecha:** 24/10/2026
-**Origen:** conversación del workspace `default-workspace` (no se puede mover entre
-workspaces en DSH: el workspace queda fijado al crear la sesión).
-**Destino:** este workspace, `C:\Views\DesktopIdentifier`.
+**Date:** 24/10/2026
+**Origin:** conversation in the `default-workspace` workspace (it cannot be moved
+between workspaces in DSH: the workspace is fixed when the session is created).
+**Destination:** this workspace, `C:\Views\DesktopIdentifier`.
 
-> **Actualización (26/10/2026):** las fases 1, 2 y 3 están implementadas y
-> probadas. Las decisiones de la sección 3 están cerradas (ver el plan,
-> sección 12) y el estado real está en [FASE-1.md](FASE-1.md),
-> [FASE-2.md](FASE-2.md) y [FASE-3.md](FASE-3.md). Este documento se conserva
-> como traspaso histórico; donde dice `DistintiveVM`, el nombre actual es
-> `DesktopIdentifier`.
+> **Update (26/10/2026):** phases 1, 2 and 3 are implemented and tested. The
+> decisions in section 3 are closed (see the plan, section 12) and the real state
+> is in [FASE-1.md](FASE-1.md), [FASE-2.md](FASE-2.md) and [FASE-3.md](FASE-3.md).
+> This document is kept as a historical handover; where it says `DistintiveVM`,
+> the current name is `DesktopIdentifier`.
 
-Este documento resume el estado del proyecto y las decisiones tomadas para que
-una sesión nueva aquí pueda continuar sin releer toda la conversación anterior.
-
----
-
-## 1. Qué es el proyecto
-
-Aplicación Windows para **distinguir visualmente dos máquinas virtuales clonadas**
-que comparten anfitrión:
-
-- **Banda de color** en la parte superior del escritorio, integrada en el fondo de
-  pantalla (azul para A, naranja para B).
-- **Cartel flotante** con la letra A/B, semitransparente, siempre encima, sin
-  capturar el ratón (los clics atraviesan el cartel).
-- **Configuración** de letra, color, tamaño, transparencia y banda.
-- **Arranque automático** con la sesión de Windows.
-
-Nombre de trabajo original: *Distintive VM*. Este repositorio: **DesktopIdentifier**
-(«Know which machine you're working on»).
+This document summarizes the state of the project and the decisions taken so
+that a new session here can continue without re-reading the whole previous
+conversation.
 
 ---
 
-## 2. Estado actual
+## 1. What the project is
 
-- Implementación **Delphi 12 (RAD Studio 23.0), Win32**, funcionando, en
-  `C:\Views\DistintiveVM` (un solo ejecutable VCL):
-  - Ventana por capas con `WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW`.
-  - Dibujo con GDI+ en un **DIB de 32 bpp premultiplicado** y `UpdateLayeredWindow`.
-  - Configuración en `distintive.ini` junto al ejecutable.
-  - Banda compuesta a la resolución real de pantalla, con copia del fondo original
-    y restauración al desinstalar.
-  - Arranque por `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\DistintiveVM`.
-  - Modos: sin parámetros = cartel; `/config` = configuración; `/quit` = cerrar.
-  - Instancia única (mutex `Local\DistintiveVM_Badge`); segunda ejecución sale y
-    pide recarga.
-- La versión **PowerShell** anterior está desinstalada y borrada por completo.
-- Repositorio: commit inicial, remoto
-  `https://github.com/juanccilleruelo/DesktopIdentifier.git`, `.gitignore` de Delphi.
-- En `docs/` están este traspaso y el plan de evolución.
+Windows application to **visually distinguish two cloned virtual machines** that
+share a host:
 
-**Lo que no está hecho:** el plan de separación en dos programas todavía **no se ha
-implementado**. El código actual sigue siendo un único ejecutable.
+- **Color band** at the top of the desktop, built into the wallpaper (blue for
+  A, orange for B).
+- **Floating badge** with the letter A/B, semi-transparent, always on top,
+  without capturing the mouse (clicks pass through the badge).
+- **Settings** for letter, color, size, transparency and band.
+- **Automatic startup** with the Windows session.
+
+Original working name: *Distintive VM*. This repository: **DesktopIdentifier**
+("Know which machine you're working on").
 
 ---
 
-## 3. Plan de evolución (propuesta)
+## 2. Current state
 
-Documento completo: [PLAN-DOS-PROGRAMAS.md](PLAN-DOS-PROGRAMAS.md).
+- **Delphi 12 (RAD Studio 23.0), Win32** implementation, working, in
+  `C:\Views\DistintiveVM` (a single VCL executable):
+  - Layered window with `WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW`.
+  - Drawing with GDI+ into a **premultiplied 32 bpp DIB** and `UpdateLayeredWindow`.
+  - Settings in `distintive.ini` next to the executable.
+  - Band composed at the real screen resolution, with a copy of the original
+    wallpaper and restoration on uninstall.
+  - Startup via `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\DistintiveVM`.
+  - Modes: no parameters = badge; `/config` = settings; `/quit` = close.
+  - Single instance (mutex `Local\DistintiveVM_Badge`); a second run exits and
+    requests a reload.
+- The previous **PowerShell** version is uninstalled and completely deleted.
+- Repository: initial commit, remote
+  `https://github.com/juanccilleruelo/DesktopIdentifier.git`, Delphi `.gitignore`.
+- This handover and the evolution plan are in `docs/`.
 
-Resumen:
-
-1. **Dos programas:** configurador (`DistintiveVM.exe`, VCL) y programa de inicio
-   (`DistintiveVMHost.exe`, sin VCL, < 1 MB, < 10 MB de RAM).
-2. **Instalación una sola vez:** copiar el host a una carpeta estable de la máquina
-   y registrar el arranque. A partir de ahí, **Aplicar solo escribe el `.ini` y el
-   fondo**, sin volver a copiar ni tocar el registro.
-3. **Configuración en `distintive.ini`** junto al host.
-4. **La banda la genera el configurador**; el host solo pinta el cartel.
-5. **Fases:** F1 separar sin cambiar comportamiento; F2 color/altura/textos de la
-   banda y del cartel; F3 pulido (versión, reparación, documentación).
-
-### Decisiones que faltan por confirmar
-
-Las cuatro bloqueantes:
-
-1. **Ubicación del host:** `%LOCALAPPDATA%\DistintiveVM\` con todo junto
-   (recomendada) o separar el exe en `%LOCALAPPDATA%\Programs\DistintiveVM\`.
-2. **Instalación:** botón *Instalar* explícito (recomendado) o automática en el
-   primer *Aplicar*.
-3. **Desinstalar:** ¿borrar el `.ini` o conservarlo?
-4. **Varios monitores:** la banda es parte del fondo, así que Windows la replica en
-   todos. ¿Se acepta o se quiere solo en el principal?
-
-Menores (fase 2): longitud del texto del cartel, icono en bandeja o host invisible,
-vigilante del fondo, nombre del host, color/alineación del texto de la banda.
+**What is not done:** the plan to split into two programs has **not been
+implemented** yet. The current code is still a single executable.
 
 ---
 
-## 4. Dónde está el código y primer paso
+## 3. Evolution plan (proposal)
 
-El código está **fuera de este workspace**, en `C:\Views\DistintiveVM`.
+Full document: [PLAN-DOS-PROGRAMAS.md](PLAN-DOS-PROGRAMAS.md).
 
-Como el sandbox de escritura solo permite escribir dentro del workspace, para
-trabajar en la fase 1 hay que **traer el proyecto a este repositorio**. Propuesta:
+Summary:
+
+1. **Two programs:** configurator (`DistintiveVM.exe`, VCL) and startup program
+   (`DistintiveVMHost.exe`, without VCL, < 1 MB, < 10 MB of RAM).
+2. **One-time installation:** copy the host to a stable folder on the machine
+   and register startup. From then on, **Apply only writes the `.ini` and the
+   wallpaper**, without copying again or touching the registry.
+3. **Settings in `distintive.ini`** next to the host.
+4. **The band is generated by the configurator**; the host only paints the badge.
+5. **Phases:** F1 split without changing behavior; F2 color/height/texts of the
+   band and the badge; F3 polish (version, repair, documentation).
+
+### Decisions still to be confirmed
+
+The four blocking ones:
+
+1. **Host location:** `%LOCALAPPDATA%\DistintiveVM\` with everything together
+   (recommended) or separate the exe into `%LOCALAPPDATA%\Programs\DistintiveVM\`.
+2. **Installation:** explicit *Install* button (recommended) or automatic on the
+   first *Apply*.
+3. **Uninstall:** delete the `.ini` or keep it?
+4. **Multiple monitors:** the band is part of the wallpaper, so Windows
+   replicates it on all of them. Is that accepted or do you want it only on the
+   primary one?
+
+Minor ones (phase 2): badge text length, tray icon or invisible host, wallpaper
+watchdog, host name, band text color/alignment.
+
+---
+
+## 4. Where the code is and first step
+
+The code is **outside this workspace**, in `C:\Views\DistintiveVM`.
+
+Since the write sandbox only allows writing inside the workspace, to work on
+phase 1 the project must be **brought into this repository**. Proposal:
 
 ```
 DesktopIdentifier\
     README.md
     LICENSE
-    docs\                     (ya está: plan + este traspaso)
-    src\                      copia de C:\Views\DistintiveVM (*.dpr, *.pas, *.dproj, *.rc/.res, *.manifest, *.cmd)
-    bin\                      salida de compilación (ignorada por .gitignore)
-    dcu\                      unidades compiladas (ignorada)
+    docs\                     (already there: plan + this handover)
+    src\                      copy of C:\Views\DistintiveVM (*.dpr, *.pas, *.dproj, *.rc/.res, *.manifest, *.cmd)
+    bin\                      build output (ignored by .gitignore)
+    dcu\                      compiled units (ignored)
 ```
 
-Pasos:
+Steps:
 
-1. Copiar los fuentes de `C:\Views\DistintiveVM` a `src\`.
-2. Comprobar que `Compilar.cmd` y el `.dproj` siguen funcionando desde ahí.
-3. Decidir el nombre definitivo: *Distintive VM* o *Desktop Identifier* (afecta a
-   ejecutables, manifiesto, valor de `Run`, rutas de instalación).
+1. Copy the sources from `C:\Views\DistintiveVM` to `src\`.
+2. Check that `Compilar.cmd` and the `.dproj` still work from there.
+3. Decide the final name: *Distintive VM* or *Desktop Identifier* (it affects
+   executables, manifest, `Run` value, installation paths).
 
-Alternativa: dejar el código donde está y abrir el workspace en
-`C:\Views\DistintiveVM`; pero entonces el repositorio no sería este.
-
----
-
-## 5. Cómo continuar
-
-1. Confirmar las decisiones de la sección 3 (o aceptar las recomendaciones).
-2. Fase 1 del plan: separar en configurador + host, sin añadir funcionalidad.
-3. Criterios de aceptación de la fase 1 (en el plan, sección 9).
+Alternative: leave the code where it is and open the workspace in
+`C:\Views\DistintiveVM`; but then the repository would not be this one.
 
 ---
 
-## 6. Trampas técnicas ya resueltas (no repetirlas)
+## 5. How to continue
 
-- **Alfa premultiplicado:** `UpdateLayeredWindow` con `AC_SRC_ALPHA` espera píxeles
-  premultiplicados. Si se copia el ARGB tal cual, el panel se ve opaco.
-- **Clic transparente:** `WS_EX_LAYERED` + `WS_EX_TRANSPARENT`; sin el segundo, el
-  cartel se come los clics.
-- **Sin robar foco:** `WS_EX_NOACTIVATE` + `ShowWindow(SW_SHOWNOACTIVATE)`.
-- **Fuera de Alt+Tab/barra:** `WS_EX_TOOLWINDOW` y `ShowInTaskbar = False`.
-- **Controles v6 y `TPanel.Color`:** con estilos activos, un `TPanel` ignora `Color`
-  si `StyleElements` incluye `seClient`; usar `StyleElements := []` en los paneles
-  de color (cabecera y muestra de color).
-- **Acentos en fuentes:** los `.pas` con caracteres no ASCII necesitan **BOM UTF-8**,
-  o Delphi los lee como ANSI y salen «MÃ¡quina».
-- **Recursos:** Delphi regenera `DistintiveVM.res` en cada compilación (proyecto
-  homónimo). El manifiesto y la versión van en `Recursos.res` (nombre distinto) para
-  que no los pise; el `.dpr` referencia `{$R 'Recursos.res'}`.
-- **Bloqueo del exe:** si hay una instancia en marcha, `dcc32` no puede sobrescribir
-  el ejecutable. Parar antes: `Stop-Process -Name DistintiveVM`.
-- **Una sola instancia:** la segunda ejecución no muestra nada; solo pide `RELOAD`
-  al cartel que ya está. Es la causa de «ejecuto desde el IDE y no pasa nada».
-- **Arranque:** `HKCU\...\Run` (por usuario, sin admin). La ruta guardada es la del
-  exe que aplicó (`ParamStr(0)`); si se mueve, hay que volver a aplicar.
-- **Fondo:** se guarda `fondo-original.dat` + `fondo-original.ini` antes de tocar
-  nada y se restaura al desinstalar. Si el usuario cambia el fondo a mano, la banda
-  desaparece; hay que reaplicarla.
-- **La app abierta reescribe el log de la sesión**; por eso el workspace no se puede
-  cambiar en caliente.
+1. Confirm the decisions in section 3 (or accept the recommendations).
+2. Phase 1 of the plan: split into configurator + host, without adding
+   functionality.
+3. Acceptance criteria of phase 1 (in the plan, section 9).
 
 ---
 
-## 7. Comandos y archivos útiles
+## 6. Technical traps already solved (do not repeat them)
 
-En `C:\Views\DistintiveVM`:
-
-- `Compilar.cmd` — compila a `bin\DistintiveVM.exe`.
-- `Configurar.cmd` — abre la configuración.
-- `bin\DistintiveVM.exe /config` — ídem desde consola.
-- `bin\DistintiveVM.exe /quit` — cierra el cartel.
-
-Documentación:
-
-- `C:\Views\DistintiveVM\README.md` — cómo compilar, ejecutar y configurar.
-- `docs/PLAN-DOS-PROGRAMAS.md` — plan completo.
+- **Premultiplied alpha:** `UpdateLayeredWindow` with `AC_SRC_ALPHA` expects
+  premultiplied pixels. If the ARGB is copied as is, the panel looks opaque.
+- **Click-through:** `WS_EX_LAYERED` + `WS_EX_TRANSPARENT`; without the second
+  one, the badge eats the clicks.
+- **Without stealing focus:** `WS_EX_NOACTIVATE` + `ShowWindow(SW_SHOWNOACTIVATE)`.
+- **Out of Alt+Tab/taskbar:** `WS_EX_TOOLWINDOW` and `ShowInTaskbar = False`.
+- **v6 controls and `TPanel.Color`:** with styles active, a `TPanel` ignores
+  `Color` if `StyleElements` includes `seClient`; use `StyleElements := []` in
+  the color panels (header and color swatch).
+- **Accents in sources:** `.pas` files with non-ASCII characters need a **UTF-8
+  BOM**, or Delphi reads them as ANSI and "MÃ¡quina" comes out.
+- **Resources:** Delphi regenerates `DistintiveVM.res` on every build (project of
+  the same name). The manifest and the version go in `Recursos.res` (a different
+  name) so that it does not overwrite them; the `.dpr` references
+  `{$R 'Recursos.res'}`.
+- **Exe lock:** if an instance is running, `dcc32` cannot overwrite the
+  executable. Stop it first: `Stop-Process -Name DistintiveVM`.
+- **Single instance:** the second run shows nothing; it only requests `RELOAD`
+  from the badge that is already there. This is the cause of "I run it from the
+  IDE and nothing happens".
+- **Startup:** `HKCU\...\Run` (per user, no admin). The saved path is that of the
+  exe that applied it (`ParamStr(0)`); if it is moved, it must be applied again.
+- **Wallpaper:** `fondo-original.dat` + `fondo-original.ini` are saved before
+  touching anything and restored on uninstall. If the user changes the wallpaper
+  by hand, the band disappears; it must be reapplied.
+- **The open app rewrites the session log**; that is why the workspace cannot be
+  changed on the fly.
 
 ---
 
-## 8. Primer mensaje sugerido para la sesión nueva
+## 7. Useful commands and files
 
-> Lee `docs/TRASPASO.md` y `docs/PLAN-DOS-PROGRAMAS.md`. Confirma las cuatro
-> decisiones pendientes y empecemos la fase 1: traer el proyecto a este repo y
-> separarlo en configurador + programa de inicio.
+In `C:\Views\DistintiveVM`:
+
+- `Compilar.cmd` — builds to `bin\DistintiveVM.exe`.
+- `Configurar.cmd` — opens the settings.
+- `bin\DistintiveVM.exe /config` — same from the console.
+- `bin\DistintiveVM.exe /quit` — closes the badge.
+
+Documentation:
+
+- `C:\Views\DistintiveVM\README.md` — how to build, run and configure.
+- `docs/PLAN-DOS-PROGRAMAS.md` — full plan.
+
+---
+
+## 8. Suggested first message for the new session
+
+> Read `docs/TRASPASO.md` and `docs/PLAN-DOS-PROGRAMAS.md`. Confirm the four
+> pending decisions and let's start phase 1: bring the project into this repo
+> and split it into configurator + startup program.

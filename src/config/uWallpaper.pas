@@ -148,7 +148,7 @@ begin
 
   L := TStringList.Create;
   try
-    L.Add('; Fondo original guardado por DesktopIdentifier. No borrar: se usa al desinstalar.');
+    L.Add('; Original wallpaper saved by DesktopIdentifier. Do not delete: it is used on uninstall.');
     L.Add('ruta=' + Ruta);
     L.Add('estilo=' + Estilo);
     L.Add('mosaico=' + Mosaico);

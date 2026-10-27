@@ -1,40 +1,40 @@
-# Fase 1 — Separación en configurador + programa de inicio
+# Phase 1 — Split into configurator + startup program
 
-**Estado:** implementada y probada
-**Fecha:** 24/10/2026
+**Status:** implemented and tested
+**Date:** 24/10/2026
 **Base:** [PLAN-DOS-PROGRAMAS.md](PLAN-DOS-PROGRAMAS.md)
 
-> **Nota:** la fase 2 (color, altura y texto de la banda, color del texto y
-> Reaplicar banda) está implementada después; ver [FASE-2.md](FASE-2.md).
+> **Note:** phase 2 (band color, height and text, text color and Reapply band)
+> was implemented later; see [FASE-2.md](FASE-2.md).
 
 ---
 
-## 1. Decisiones cerradas
+## 1. Closed decisions
 
-| Decisión | Elección |
+| Decision | Choice |
 |---|---|
-| Nombre del producto | **DesktopIdentifier** |
-| Ejecutables | `DesktopIdentifier.exe` (configurador) y `DesktopIdentifierHost.exe` (inicio) |
-| Ubicación | `%LOCALAPPDATA%\DesktopIdentifier\` con todo junto |
-| Instalación | Botón **Instalar** explícito; **Aplicar** exige estar instalado |
-| Desinstalación | Diálogo con casilla **Conservar la configuración**, marcada por defecto |
-| Varios monitores | Se acepta que la banda se repita en todos; el cartel va al monitor elegido |
-| Validación | Prueba real en la máquina, con desinstalación y restauración del fondo al terminar |
+| Product name | **DesktopIdentifier** |
+| Executables | `DesktopIdentifier.exe` (configurator) and `DesktopIdentifierHost.exe` (startup) |
+| Location | `%LOCALAPPDATA%\DesktopIdentifier\` with everything together |
+| Installation | Explicit **Install** button; **Apply** requires being installed |
+| Uninstallation | Dialog with a **Keep the settings** checkbox, checked by default |
+| Multiple monitors | It is accepted that the band is repeated on all of them; the badge goes to the chosen monitor |
+| Validation | Real test on the machine, with uninstallation and wallpaper restoration at the end |
 
-Consecuencias asumidas:
+Assumed consequences:
 
-- Renombrar obligó a migrar nombres de ejecutables, carpeta, INI, valor `Run`,
-  clase de ventana, mutex y mensajes. Se hizo de una vez en la fase 1.
-- La instalación es por usuario, igual que el arranque.
-- El botón **Instalar** aplica también la banda la primera vez para que la
-  máquina quede utilizable de una vez. **Aplicar** sigue siendo el único flujo
-  que cambia la configuración y nunca copia el host ni escribe en `Run`.
+- Renaming forced migrating executable names, folder, INI, `Run` value,
+  window class, mutex and messages. It was all done at once in phase 1.
+- The installation is per user, just like startup.
+- The **Install** button also applies the band the first time so that the
+  machine is usable right away. **Apply** is still the only flow that changes
+  the settings, and it never copies the host or writes to `Run`.
 
 ---
 
-## 2. Qué se ha implementado
+## 2. What has been implemented
 
-### Estructura
+### Structure
 
 ```
 DesktopIdentifier.groupproj
@@ -47,121 +47,120 @@ src\config\   DesktopIdentifier.dpr, uConfigForm.pas, uBandRender.pas,
               DesktopIdentifier.manifest, ConfigResources.rc
 ```
 
-### Programa de inicio (sin VCL)
+### Startup program (without VCL)
 
-- Ventana Win32 registrada a mano, sin `TForm`, `TApplication` ni `Controls`.
-- Estilos `WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW |
-  WS_EX_NOACTIVATE` y `HWND_TOPMOST`.
-- GDI+ dibuja el cartel; el resultado se copia a un DIB de 32 bpp
-  premultiplicado y se presenta con `UpdateLayeredWindow`.
-- `SetTimer` de 3 s para reafirmar el orden superior y recolocar ante cambios de
-  área de trabajo, resolución o DPI.
-- DPI por monitor (`GetDpiForMonitor`) y selección de monitor por índice.
-- Mutex `Local\DesktopIdentifier_Host`; segunda instancia = sale y pide `RELOAD`.
-- Mensajes registrados `DesktopIdentifier_RELOAD` y `DesktopIdentifier_QUIT`.
-- INI leído con la API de Win32 (sin `System.Classes`, `System.IniFiles` ni VCL).
-- Recorte de working set después de pintar.
+- Hand-registered Win32 window, without `TForm`, `TApplication` or `Controls`.
+- Styles `WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW |
+  WS_EX_NOACTIVATE` and `HWND_TOPMOST`.
+- GDI+ draws the badge; the result is copied to a premultiplied 32 bpp DIB
+  and presented with `UpdateLayeredWindow`.
+- 3 s `SetTimer` to reassert the topmost order and reposition on changes of
+  work area, resolution or DPI.
+- Per-monitor DPI (`GetDpiForMonitor`) and monitor selection by index.
+- Mutex `Local\DesktopIdentifier_Host`; second instance = exits and requests `RELOAD`.
+- Registered messages `DesktopIdentifier_RELOAD` and `DesktopIdentifier_QUIT`.
+- INI read with the Win32 API (without `System.Classes`, `System.IniFiles` or VCL).
+- Working-set trim after painting.
 
-### Configurador (VCL)
+### Configurator (VCL)
 
-- Ventana de configuración en código, con estado de instalación visible.
-- Instalar / Aplicar / Desinstalar / Cerrar el cartel / Cerrar.
-- Escritura **atómica** del INI (temporal + `MoveFileEx`).
-- Composición de la banda a resolución real, copia del fondo original y
-  restauración (incluido el caso de escritorio de color liso).
-- Diálogo de desinstalación con `TTaskDialog` y casilla de conservar el INI.
-- Modos `/install`, `/apply`, `/uninstall [/discard]`, `/quit` para consola.
-- INI nuevo por secciones (`[general]`, `[cartel]`, `[banda]`) con importación
-  del formato plano antiguo.
+- Settings window in code, with visible installation state.
+- Install / Apply / Uninstall / Close the badge / Close.
+- **Atomic** INI writing (temporary + `MoveFileEx`).
+- Band composition at real resolution, copy of the original wallpaper and
+  restoration (including the solid-color desktop case).
+- Uninstall dialog with `TTaskDialog` and a keep-the-INI checkbox.
+- `/install`, `/apply`, `/uninstall [/discard]`, `/quit` modes for the console.
+- New INI with sections (`[general]`, `[cartel]`, `[banda]`) with import of the
+  old flat format.
 
-### Comportamiento que cambia respecto a la versión de un solo exe
+### Behavior that changes compared to the single-exe version
 
-| Antes | Ahora |
+| Before | Now |
 |---|---|
-| Un `DistintiveVM.exe` hacía de cartel y de configuración | Dos ejecutables separados |
-| El cartel se lanzaba desde `bin\` | Se instala en `%LOCALAPPDATA%` |
-| Aplicar copiaba el exe y escribía `Run` | Aplicar solo escribe INI y fondo |
-| La casilla de arranque se tocaba en cada Aplicar | El arranque lo gestiona Instalar/Desinstalar |
-| `distintive.ini` plano | `desktopidentifier.ini` con secciones |
-| El cartel mantenía VCL en memoria (~14,5 MB) | Host sin VCL (~3,2 MB privados) |
+| A single `DistintiveVM.exe` acted as both badge and configurator | Two separate executables |
+| The badge was launched from `bin\` | It is installed in `%LOCALAPPDATA%` |
+| Apply copied the exe and wrote `Run` | Apply only writes INI and wallpaper |
+| The startup checkbox was touched on every Apply | Startup is managed by Install/Uninstall |
+| Flat `distintive.ini` | `desktopidentifier.ini` with sections |
+| The badge kept VCL in memory (~14.5 MB) | Host without VCL (~3.2 MB private) |
 
-Lo que **no** cambia: sin administrador, clic transparente, siempre encima, sin
-barra de tareas ni Alt+Tab, banda dentro del fondo, copia y restauración del
-fondo original.
+What does **not** change: no administrator, click-through, always on top,
+without taskbar or Alt+Tab, band inside the wallpaper, copy and restoration of
+the original wallpaper.
 
 ---
 
-## 3. Criterios de aceptación
+## 3. Acceptance criteria
 
-| Criterio | Resultado |
+| Criterion | Result |
 |---|---|
-| Host < 1 MB | **439.808 bytes** |
-| Host < 10 MB de RAM | working set **0,3–0,9 MB**; privada **~3,2 MB** |
-| Instalar una vez: copia + `Run` + arranque | Verificado en `%LOCALAPPDATA%\DesktopIdentifier` |
-| Aplicar no cambia el host ni el registro | Hash y fecha del host idénticos; `Run` idéntico |
-| Clic transparente, topmost, sin Alt+Tab ni barra | Estilos verificados; `WindowFromPoint` devuelve la ventana de debajo; sin `APPWINDOW` |
-| Editar el INI + `RELOAD` actualiza el cartel | 220→260 px sin reiniciar el host |
-| Desinstalar deja el sistema como estaba | `Run` borrado; `TranscodedWallpaper` con el hash original; carpeta borrada |
-| Arranque tras iniciar sesión | Entrada `Run` verificada y host lanzado desde ella |
+| Host < 1 MB | **439,808 bytes** |
+| Host < 10 MB of RAM | working set **0.3–0.9 MB**; private **~3.2 MB** |
+| Install once: copy + `Run` + start | Verified in `%LOCALAPPDATA%\DesktopIdentifier` |
+| Apply does not change the host or the registry | Identical host hash and date; identical `Run` |
+| Click-through, topmost, no Alt+Tab or taskbar | Styles verified; `WindowFromPoint` returns the window underneath; no `APPWINDOW` |
+| Edit the INI + `RELOAD` updates the badge | 220→260 px without restarting the host |
+| Uninstall leaves the system as it was | `Run` deleted; `TranscodedWallpaper` with the original hash; folder deleted |
+| Startup after signing in | `Run` entry verified and host launched from it |
 
-### Evidencia de las pruebas
+### Test evidence
 
-- Ventana del host: `170x170` en `(2360,1192)` con escritorio `2560x1440` y
-  barra de tareas (área de trabajo inferior `1392`), es decir, respeta el área
-  de trabajo y los márgenes.
-- `GetWindowLong(GWL_EXSTYLE)` = `0x080800A8`: incluye `LAYERED` (0x80000),
-  `TRANSPARENT` (0x20), `TOOLWINDOW` (0x80), `NOACTIVATE` (0x08000000) y
-  `TOPMOST` (0x8); no incluye `APPWINDOW`.
-- `WindowFromPoint` en el centro del cartel devolvió otra ventana.
-- Aplicar con cambios (`260 px`, azul, banda al 12 %): el PNG cambió, el cartel
-  pasó a `260x260`, y el hash/fecha del host y el valor `Run` no cambiaron.
-- Desinstalar con conservar: solo quedó `desktopidentifier.ini`.
-- Desinstalar con `/discard`: la carpeta desapareció.
-- `TranscodedWallpaper` antes y después: mismo SHA-256
+- Host window: `170x170` at `(2360,1192)` with a `2560x1440` desktop and
+  taskbar (bottom work area `1392`), that is, it respects the work area and
+  the margins.
+- `GetWindowLong(GWL_EXSTYLE)` = `0x080800A8`: it includes `LAYERED` (0x80000),
+  `TRANSPARENT` (0x20), `TOOLWINDOW` (0x80), `NOACTIVATE` (0x08000000) and
+  `TOPMOST` (0x8); it does not include `APPWINDOW`.
+- `WindowFromPoint` at the badge center returned another window.
+- Apply with changes (`260 px`, blue, band at 12%): the PNG changed, the badge
+  became `260x260`, and the host hash/date and the `Run` value did not change.
+- Uninstall keeping the settings: only `desktopidentifier.ini` remained.
+- Uninstall with `/discard`: the folder disappeared.
+- `TranscodedWallpaper` before and after: same SHA-256
   (`8D74321F…F97F7097`).
 
 ---
 
-## 4. Cómo reproducir la verificación
+## 4. How to reproduce the verification
 
 ```bat
 Compilar.cmd --no-pause
 bin\DesktopIdentifier.exe /install
-:: comprobar carpeta, valor Run y proceso
+:: check folder, Run value and process
 bin\DesktopIdentifier.exe /apply
-:: comparar hash del host instalado y valor Run antes/después
+:: compare installed host hash and Run value before/after
 bin\DesktopIdentifier.exe /uninstall
-:: comprobar que Run desaparece y que se restaura el fondo
+:: check that Run disappears and that the wallpaper is restored
 ```
 
-Para la recarga en caliente, editar `tamanio` o `color` en
-`%LOCALAPPDATA%\DesktopIdentifier\desktopidentifier.ini` y enviar
-`DesktopIdentifier_RELOAD` a la ventana `DesktopIdentifierHostWindow` (lo hace
-el configurador al aplicar).
+For hot reload, edit `tamanio` or `color` in
+`%LOCALAPPDATA%\DesktopIdentifier\desktopidentifier.ini` and send
+`DesktopIdentifier_RELOAD` to the `DesktopIdentifierHostWindow` window (the
+configurator does this when applying).
 
 ---
 
-## 5. Pendiente para la fase 2
+## 5. Pending for phase 2
 
-- Color, altura y texto de la banda; color del texto del cartel y de la banda.
-- Botón **Reaplicar banda** si el usuario cambia el fondo a mano.
-- Texto del cartel de hasta 4 caracteres con ajuste de tamaño.
-- Valorar icono en la bandeja o menú del host.
-- Fase 3: versión visible, reparación de instalaciones huérfanas y actualización
-  guiada.
+- Band color, height and text; badge and band text color.
+- **Reapply band** button if the user changes the wallpaper by hand.
+- Badge text of up to 4 characters with size adjustment.
+- Consider a tray icon or host menu.
+- Phase 3: visible version, repair of orphan installations and guided update.
 
 ---
 
-## 6. Notas de implementación
+## 6. Implementation notes
 
-- Los `.pas` y `.dpr` con acentos llevan **BOM UTF-8**; sin él Delphi los lee
-  como ANSI y los textos salen mal.
-- `KEY_WRITE` no incluye permiso de lectura: para leer y borrar valores hay que
-  abrir el registro con `KEY_READ or KEY_WRITE`. Fue la causa de que la primera
-  versión de `Desinstalar` no borrase la entrada de `Run`.
-- `TStringList` obliga a enlazar `System.Classes` y dispara el ejecutable del
-  host por encima de 1 MB. Por eso el INI se lee/escribe con `CreateFile`,
-  `ReadFile` y `WriteFile`.
-- El host recorta su working set después de cada pintura; sin ese recorte el
-  working set ronda los 11 MB por las DLL compartidas, aunque la memoria privada
-  sea de ~3,2 MB.
+- The `.pas` and `.dpr` files with accents carry a **UTF-8 BOM**; without it
+  Delphi reads them as ANSI and the texts come out wrong.
+- `KEY_WRITE` does not include read permission: to read and delete values you
+  must open the registry with `KEY_READ or KEY_WRITE`. This was the cause of the
+  first version of `Desinstalar` not deleting the `Run` entry.
+- `TStringList` forces linking `System.Classes` and pushes the host executable
+  above 1 MB. That is why the INI is read/written with `CreateFile`, `ReadFile`
+  and `WriteFile`.
+- The host trims its working set after every paint; without that trim the
+  working set is around 11 MB due to the shared DLLs, even though private
+  memory is ~3.2 MB.

@@ -10,7 +10,8 @@ uses
   Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
   Vcl.Samples.Spin, Vcl.Dialogs, Vcl.Graphics,
   Winapi.GDIPAPI, Winapi.GDIPOBJ,
-  uPaths, uSettings, uUtils, uBadgeRender, uBandRender, uInstall, uVersion;
+  uPaths, uSettings, uUtils, uBadgeRender, uBandRender, uInstall, uVersion,
+  Languages;
 
 type
   TConfigForm = class(TForm)
@@ -149,7 +150,7 @@ begin
   end;
   ShowInTaskbar := True;
 
-  Caption := 'DesktopIdentifier - Configuración';
+  Caption := Texto(txtAppTitle) + ' - ' + Texto(txtSettings);
   BorderStyle := bsSingle;
   BorderIcons := [biSystemMenu, biMinimize];
   ClientWidth := 620;
@@ -230,9 +231,9 @@ begin
   if T = '' then
     T := 'A';
   if SameText(T, 'A') then
-    Result := 'Máquina A'
+    Result := Texto(txtMachineA)
   else if SameText(T, 'B') then
-    Result := 'Máquina B'
+    Result := Texto(txtMachineB)
   else
     Result := T;
 end;
@@ -249,7 +250,7 @@ begin
 
   FLblTitulo := TLabel.Create(Self);
   FLblTitulo.Parent := FHeader;
-  FLblTitulo.Caption := 'DesktopIdentifier';
+  FLblTitulo.Caption := Texto(txtAppTitle);
   FLblTitulo.Font.Name := 'Segoe UI';
   FLblTitulo.Font.Size := 16;
   FLblTitulo.Font.Style := [fsBold];
@@ -259,7 +260,7 @@ begin
 
   FLblSub := TLabel.Create(Self);
   FLblSub.Parent := FHeader;
-  FLblSub.Caption := 'Marca visual para distinguir esta máquina de la otra · v' + VersionApp;
+  FLblSub.Caption := TextoFmt(txtSubtitle, [VersionApp]);
   FLblSub.Font.Name := 'Segoe UI';
   FLblSub.Font.Size := 9;
   FLblSub.Font.Color := RGB(232, 232, 232);
@@ -272,11 +273,11 @@ begin
 
   FTabCartel := TTabSheet.Create(Self);
   FTabCartel.PageControl := FPages;
-  FTabCartel.Caption := 'Cartel';
+  FTabCartel.Caption := Texto(txtTabBadge);
 
   FTabBanda := TTabSheet.Create(Self);
   FTabBanda.PageControl := FPages;
-  FTabBanda.Caption := 'Banda';
+  FTabBanda.Caption := Texto(txtTabBand);
 
   CrearTabCartel;
   CrearTabBanda;
@@ -290,7 +291,7 @@ begin
 
   FLblInstalacion := TLabel.Create(Self);
   FLblInstalacion.Parent := Self;
-  FLblInstalacion.Caption := 'Sin instalar';
+  FLblInstalacion.Caption := Texto(txtNotInstalled);
   FLblInstalacion.Font.Style := [fsBold];
   FLblInstalacion.AutoSize := False;
   FLblInstalacion.SetBounds(16, 610, 588, 18);
@@ -304,37 +305,37 @@ begin
 
   FBtnInstalar := TButton.Create(Self);
   FBtnInstalar.Parent := Self;
-  FBtnInstalar.Caption := 'Instalar';
+  FBtnInstalar.Caption := Texto(txtInstall);
   FBtnInstalar.SetBounds(16, 676, 110, 32);
   FBtnInstalar.OnClick := InstalarClick;
 
   FBtnAplicar := TButton.Create(Self);
   FBtnAplicar.Parent := Self;
-  FBtnAplicar.Caption := 'Aplicar';
+  FBtnAplicar.Caption := Texto(txtApply);
   FBtnAplicar.SetBounds(136, 676, 100, 32);
   FBtnAplicar.OnClick := AplicarClick;
 
   FBtnDesinstalar := TButton.Create(Self);
   FBtnDesinstalar.Parent := Self;
-  FBtnDesinstalar.Caption := 'Desinstalar';
+  FBtnDesinstalar.Caption := Texto(txtUninstall);
   FBtnDesinstalar.SetBounds(246, 676, 110, 32);
   FBtnDesinstalar.OnClick := DesinstalarClick;
 
   FBtnReaplicar := TButton.Create(Self);
   FBtnReaplicar.Parent := Self;
-  FBtnReaplicar.Caption := 'Reaplicar banda';
+  FBtnReaplicar.Caption := Texto(txtReapply);
   FBtnReaplicar.SetBounds(366, 676, 140, 32);
   FBtnReaplicar.OnClick := ReaplicarClick;
 
   FBtnCerrarCartel := TButton.Create(Self);
   FBtnCerrarCartel.Parent := Self;
-  FBtnCerrarCartel.Caption := 'Cerrar el cartel';
+  FBtnCerrarCartel.Caption := Texto(txtCloseBadge);
   FBtnCerrarCartel.SetBounds(16, 716, 142, 32);
   FBtnCerrarCartel.OnClick := CerrarCartelClick;
 
   FBtnCerrar := TButton.Create(Self);
   FBtnCerrar.Parent := Self;
-  FBtnCerrar.Caption := 'Cerrar';
+  FBtnCerrar.Caption := Texto(txtClose);
   FBtnCerrar.Cancel := True;
   FBtnCerrar.SetBounds(514, 716, 90, 32);
   FBtnCerrar.OnClick := CerrarVentana;
@@ -346,7 +347,7 @@ var
 begin
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
-  L.Caption := 'Texto del cartel:';
+  L.Caption := Texto(txtBadgeText);
   L.SetBounds(8, 17, 110, 18);
 
   FEdTexto := TEdit.Create(Self);
@@ -358,13 +359,13 @@ begin
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
-  L.Caption := '1–4 caracteres';
+  L.Caption := Texto(txtBadgeTextHint);
   L.Font.Color := RGB(110, 110, 110);
   L.SetBounds(210, 17, 120, 18);
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
-  L.Caption := 'Color del panel:';
+  L.Caption := Texto(txtPanelColor);
   L.SetBounds(8, 51, 110, 18);
 
   FSwCartel := TPanel.Create(Self);
@@ -384,13 +385,13 @@ begin
 
   FBtnCartelColor := TButton.Create(Self);
   FBtnCartelColor.Parent := FTabCartel;
-  FBtnCartelColor.Caption := 'Cambiar...';
+  FBtnCartelColor.Caption := Texto(txtChange);
   FBtnCartelColor.SetBounds(250, 45, 110, 28);
   FBtnCartelColor.OnClick := CambiarColorCartel;
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
-  L.Caption := 'Color del texto:';
+  L.Caption := Texto(txtTextColor);
   L.SetBounds(8, 85, 110, 18);
 
   FSwTexto := TPanel.Create(Self);
@@ -410,13 +411,13 @@ begin
 
   FBtnTextoColor := TButton.Create(Self);
   FBtnTextoColor.Parent := FTabCartel;
-  FBtnTextoColor.Caption := 'Cambiar...';
+  FBtnTextoColor.Caption := Texto(txtChange);
   FBtnTextoColor.SetBounds(250, 79, 110, 28);
   FBtnTextoColor.OnClick := CambiarColorTexto;
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
-  L.Caption := 'Tamaño:';
+  L.Caption := Texto(txtSize);
   L.SetBounds(8, 119, 110, 18);
 
   FSeTamano := TSpinEdit.Create(Self);
@@ -435,7 +436,7 @@ begin
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
-  L.Caption := 'Opacidad del panel:';
+  L.Caption := Texto(txtPanelOpacity);
   L.SetBounds(8, 153, 140, 18);
 
   FTbOpacidad := TTrackBar.Create(Self);
@@ -455,7 +456,7 @@ begin
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
-  L.Caption := 'Opacidad del texto:';
+  L.Caption := Texto(txtTextOpacity);
   L.SetBounds(8, 187, 140, 18);
 
   FTbOpacidadTexto := TTrackBar.Create(Self);
@@ -475,7 +476,7 @@ begin
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
-  L.Caption := 'Radio de las esquinas:';
+  L.Caption := Texto(txtCornerRadius);
   L.SetBounds(8, 221, 150, 18);
 
   FTbEsquinas := TTrackBar.Create(Self);
@@ -495,7 +496,7 @@ begin
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
-  L.Caption := 'Márgenes (der./inf.):';
+  L.Caption := Texto(txtMargins);
   L.SetBounds(8, 255, 150, 18);
 
   FSeMargenDer := TSpinEdit.Create(Self);
@@ -528,14 +529,14 @@ var
 begin
   FChkBanda := TCheckBox.Create(Self);
   FChkBanda.Parent := FTabBanda;
-  FChkBanda.Caption := 'Poner la banda de color en el escritorio (fondo de pantalla)';
+  FChkBanda.Caption := Texto(txtBandEnable);
   FChkBanda.SetBounds(8, 12, 520, 22);
   FChkBanda.Checked := FAjustes.BandaActiva;
   FChkBanda.OnClick := CambioBanda;
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
-  L.Caption := 'Color de la banda:';
+  L.Caption := Texto(txtBandColor);
   L.SetBounds(8, 49, 140, 18);
 
   FSwBanda := TPanel.Create(Self);
@@ -555,13 +556,13 @@ begin
 
   FBtnBandaColor := TButton.Create(Self);
   FBtnBandaColor.Parent := FTabBanda;
-  FBtnBandaColor.Caption := 'Cambiar...';
+  FBtnBandaColor.Caption := Texto(txtChange);
   FBtnBandaColor.SetBounds(278, 43, 110, 28);
   FBtnBandaColor.OnClick := CambiarColorBanda;
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
-  L.Caption := 'Color del texto:';
+  L.Caption := Texto(txtTextColor);
   L.SetBounds(8, 83, 140, 18);
 
   FSwTextoBanda := TPanel.Create(Self);
@@ -581,13 +582,13 @@ begin
 
   FBtnTextoBandaColor := TButton.Create(Self);
   FBtnTextoBandaColor.Parent := FTabBanda;
-  FBtnTextoBandaColor.Caption := 'Cambiar...';
+  FBtnTextoBandaColor.Caption := Texto(txtChange);
   FBtnTextoBandaColor.SetBounds(278, 77, 110, 28);
   FBtnTextoBandaColor.OnClick := CambiarColorTextoBanda;
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
-  L.Caption := 'Altura de la banda:';
+  L.Caption := Texto(txtBandHeight);
   L.SetBounds(8, 117, 140, 18);
 
   FTbAlto := TTrackBar.Create(Self);
@@ -607,7 +608,7 @@ begin
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
-  L.Caption := 'Texto de la banda:';
+  L.Caption := Texto(txtBandText);
   L.SetBounds(8, 151, 140, 18);
 
   FEdTextoBanda := TEdit.Create(Self);
@@ -619,34 +620,34 @@ begin
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
-  L.Caption := 'Vacío = sin texto';
+  L.Caption := Texto(txtBandTextHint);
   L.Font.Color := RGB(110, 110, 110);
   L.SetBounds(378, 151, 150, 18);
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
-  L.Caption := 'Alineación del texto:';
+  L.Caption := Texto(txtBandAlignment);
   L.SetBounds(8, 185, 140, 18);
 
   FCbAlineacion := TComboBox.Create(Self);
   FCbAlineacion.Parent := FTabBanda;
   FCbAlineacion.Style := csDropDownList;
-  FCbAlineacion.Items.Add('Derecha');
-  FCbAlineacion.Items.Add('Centro');
-  FCbAlineacion.Items.Add('Izquierda');
+  FCbAlineacion.Items.Add(Texto(txtAlignRight));
+  FCbAlineacion.Items.Add(Texto(txtAlignCenter));
+  FCbAlineacion.Items.Add(Texto(txtAlignLeft));
   FCbAlineacion.ItemIndex := IndiceDeAlineacion(FAjustes.BandaAlineacion);
   FCbAlineacion.SetBounds(150, 181, 120, 24);
   FCbAlineacion.OnChange := CambioBanda;
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
-  L.Caption := 'La banda es parte del fondo: Windows la repite en todos los monitores.';
+  L.Caption := Texto(txtBandNoteMonitors);
   L.Font.Color := RGB(110, 110, 110);
   L.SetBounds(8, 221, 540, 18);
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
-  L.Caption := 'Si cambias el fondo a mano, pulsa «Reaplicar banda».';
+  L.Caption := Texto(txtBandNoteReapply);
   L.Font.Color := RGB(110, 110, 110);
   L.SetBounds(8, 245, 540, 18);
 end;
@@ -725,7 +726,7 @@ begin
   FLblAlto.Caption := IntToStr(FTbAlto.Position) + ' % (≈' +
     IntToStr(Round(AltoPantalla * FTbAlto.Position / 100)) + ' px)';
 
-  Caption := 'DesktopIdentifier - Configuración - ' + TituloVentana;
+  Caption := Texto(txtAppTitle) + ' - ' + Texto(txtSettings) + ' - ' + TituloVentana;
   FPbPreview.Invalidate;
 end;
 
@@ -899,23 +900,23 @@ begin
   if E.RequiereReparacion then
   begin
     FLblInstalacion.Font.Color := RGB(170, 30, 30);
-    FBtnInstalar.Caption := 'Reparar';
+    FBtnInstalar.Caption := Texto(txtRepair);
   end
   else if not E.HostInstalado then
   begin
     FLblInstalacion.Font.Color := RGB(150, 90, 0);
-    FLblInstalacion.Caption := 'Sin instalar · pulsa Instalar para activar el cartel';
-    FBtnInstalar.Caption := 'Instalar';
+    FLblInstalacion.Caption := Texto(txtNotInstalledHint);
+    FBtnInstalar.Caption := Texto(txtInstall);
   end
   else if E.ActualizacionDisponible then
   begin
     FLblInstalacion.Font.Color := RGB(150, 90, 0);
-    FBtnInstalar.Caption := 'Actualizar';
+    FBtnInstalar.Caption := Texto(txtUpdate);
   end
   else
   begin
     FLblInstalacion.Font.Color := RGB(20, 110, 60);
-    FBtnInstalar.Caption := 'Reinstalar';
+    FBtnInstalar.Caption := Texto(txtReinstall);
   end;
 end;
 
@@ -925,13 +926,12 @@ var
 begin
   E := EstadoInstalacion;
   if E.RequiereReparacion then
-    MostrarMensaje(E.Problema + ' Pulsa Reparar.', True)
+    MostrarMensaje(E.Problema + ' ' + Texto(txtPressRepair), True)
   else if E.ActualizacionDisponible then
-    MostrarMensaje('Hay una versión nueva del programa de inicio (' +
-      E.VersionInstalada + ' → ' + E.VersionDisponible +
-      '). Pulsa Actualizar.', False)
+    MostrarMensaje(TextoFmt(txtUpdateAvailableMsg,
+      [E.VersionInstalada, E.VersionDisponible]), False)
   else
-    MostrarMensaje('El cartel no bloquea los clics: puedes pulsar y escribir a través de él.', False);
+    MostrarMensaje(Texto(txtClicksThrough), False);
 end;
 
 procedure TConfigForm.AplicarDesdeUi(const MensajeOk: string);
@@ -940,7 +940,7 @@ var
 begin
   if not EstadoInstalacion.HostInstalado then
   begin
-    MostrarMensaje('Sin instalar: pulsa Instalar antes de aplicar.', True);
+    MostrarMensaje(Texto(txtNotInstalledApply), True);
     Exit;
   end;
 
@@ -950,9 +950,9 @@ begin
   try
     FAjustes := AjustesDeUi;
     if Aplicar(FAjustes, Mensaje) then
-      MostrarMensaje(MensajeOk + ' a las ' + TimeToStr(Now) + '.', False)
+      MostrarMensaje(Format(MensajeOk, [TimeToStr(Now)]), False)
     else
-      MostrarMensaje('Error: ' + Mensaje, True);
+      MostrarMensaje(TextoFmt(txtError, [Mensaje]), True);
   finally
     Screen.Cursor := crDefault;
     FBtnAplicar.Enabled := True;
@@ -964,7 +964,8 @@ end;
 procedure TConfigForm.InstalarClick(Sender: TObject);
 var
   E: TEstadoInstalacion;
-  Mensaje, Accion: string;
+  Mensaje: string;
+  OkId, FailId: TTextId;
 begin
   E := EstadoInstalacion;
 
@@ -976,11 +977,20 @@ begin
   end;
 
   if E.RequiereReparacion then
-    Accion := 'Reparado'
+  begin
+    OkId := txtRepairedApplied;
+    FailId := txtRepairApplyFailed;
+  end
   else if E.HostInstalado then
-    Accion := 'Reinstalado'
+  begin
+    OkId := txtReinstalledApplied;
+    FailId := txtReinstallApplyFailed;
+  end
   else
-    Accion := 'Instalado';
+  begin
+    OkId := txtInstalledApplied;
+    FailId := txtInstallApplyFailed;
+  end;
 
   FBtnInstalar.Enabled := False;
   Screen.Cursor := crHourGlass;
@@ -988,15 +998,15 @@ begin
     FAjustes := AjustesDeUi;
     if not Instalar(FAjustes, Mensaje) then
     begin
-      MostrarMensaje('Error: ' + Mensaje, True);
+      MostrarMensaje(TextoFmt(txtError, [Mensaje]), True);
       Exit;
     end;
     if not Aplicar(FAjustes, Mensaje) then
     begin
-      MostrarMensaje(Accion + ', pero no se pudo aplicar: ' + Mensaje, True);
+      MostrarMensaje(TextoFmt(FailId, [Mensaje]), True);
       Exit;
     end;
-    MostrarMensaje(Accion + ' y aplicado a las ' + TimeToStr(Now) + '.', False);
+    MostrarMensaje(TextoFmt(OkId, [TimeToStr(Now)]), False);
   finally
     Screen.Cursor := crDefault;
     FBtnInstalar.Enabled := True;
@@ -1012,11 +1022,9 @@ begin
   Result := False;
   Dlg := TTaskDialog.Create(Self);
   try
-    Dlg.Caption := 'Actualizar el programa de inicio';
-    Dlg.Title := 'Actualizar';
-    Dlg.Text := 'Se actualizará el programa de inicio de ' + VInstalada +
-      ' a ' + VDisponible + '. El cartel se cerrará y volverá a abrirse; ' +
-      'la configuración y el arranque no cambian.';
+    Dlg.Caption := Texto(txtUpdateDialogCaption);
+    Dlg.Title := Texto(txtUpdateDialogTitle);
+    Dlg.Text := TextoFmt(txtUpdateDialogText, [VInstalada, VDisponible]);
     Dlg.CommonButtons := [tcbYes, tcbNo];
     Dlg.DefaultButton := tcbNo;
     if not Dlg.Execute then
@@ -1043,16 +1051,15 @@ begin
   try
     if not ActualizarHost(Mensaje) then
     begin
-      MostrarMensaje('Error: ' + Mensaje, True);
+      MostrarMensaje(TextoFmt(txtError, [Mensaje]), True);
       Exit;
     end;
     FAjustes := AjustesDeUi;
     if Aplicar(FAjustes, Mensaje) then
-      MostrarMensaje('Actualizado a ' + VersionArchivo(RutaHostInstalado) +
-        ' y banda regenerada a las ' + TimeToStr(Now) + '.', False)
+      MostrarMensaje(TextoFmt(txtUpdatedBand,
+        [VersionArchivo(RutaHostInstalado), TimeToStr(Now)]), False)
     else
-      MostrarMensaje('Actualizado, pero no se pudo regenerar la banda: ' +
-        Mensaje, True);
+      MostrarMensaje(TextoFmt(txtUpdatedNoBand, [Mensaje]), True);
   finally
     Screen.Cursor := crDefault;
     FBtnInstalar.Enabled := True;
@@ -1064,17 +1071,17 @@ end;
 
 procedure TConfigForm.AplicarClick(Sender: TObject);
 begin
-  AplicarDesdeUi('Aplicado');
+  AplicarDesdeUi(Texto(txtApplied));
 end;
 
 procedure TConfigForm.ReaplicarClick(Sender: TObject);
 begin
   if not FChkBanda.Checked then
   begin
-    MostrarMensaje('La banda está desactivada: marca la casilla y pulsa Aplicar.', True);
+    MostrarMensaje(Texto(txtBandDisabled), True);
     Exit;
   end;
-  AplicarDesdeUi('Banda reaplicada');
+  AplicarDesdeUi(Texto(txtReapplied));
 end;
 
 procedure TConfigForm.DesinstalarClick(Sender: TObject);
@@ -1085,13 +1092,12 @@ var
 begin
   Dlg := TTaskDialog.Create(Self);
   try
-    Dlg.Caption := 'Desinstalar DesktopIdentifier';
-    Dlg.Title := 'Desinstalar';
-    Dlg.Text := 'Se quitará el cartel, el arranque automático y la banda, ' +
-      'y se restaurará el fondo de pantalla original.';
+    Dlg.Caption := Texto(txtUninstallDialogCaption);
+    Dlg.Title := Texto(txtUninstallDialogTitle);
+    Dlg.Text := Texto(txtUninstallDialogText);
     Dlg.CommonButtons := [tcbYes, tcbNo];
     Dlg.DefaultButton := tcbNo;
-    Dlg.VerificationText := 'Conservar la configuración';
+    Dlg.VerificationText := Texto(txtKeepConfig);
     Dlg.Flags := Dlg.Flags + [tfVerificationFlagChecked];
     if not Dlg.Execute then
       Exit;
@@ -1107,7 +1113,7 @@ begin
     if Desinstalar(Conservar, Mensaje) then
       MostrarMensaje(Mensaje, False)
     else
-      MostrarMensaje('Error: ' + Mensaje, True);
+      MostrarMensaje(TextoFmt(txtError, [Mensaje]), True);
   finally
     Screen.Cursor := crDefault;
     RefrescarEstadoInstalacion;
@@ -1118,7 +1124,7 @@ procedure TConfigForm.CerrarCartelClick(Sender: TObject);
 begin
   AvisarHost(MensajeSalir);
   Sleep(150);
-  MostrarMensaje('Petición de cierre enviada al cartel.', False);
+  MostrarMensaje(Texto(txtCloseSent), False);
   RefrescarEstadoInstalacion;
 end;
 

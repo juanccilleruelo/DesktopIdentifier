@@ -8,7 +8,7 @@
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils,
-  uPaths, uUtils, uHostWindow;
+  uPaths, uUtils, uHostWindow, Languages;
 
 {$APPTYPE GUI}
 {$R 'HostResources.res'}
@@ -32,6 +32,8 @@ begin
 
   if not IniciarHost then
   begin
+    MessageBox(0, PChar(Texto(txtHostStartError)),
+      PChar(Texto(txtHostWindowTitle)), MB_OK or MB_ICONERROR);
     if Mutex <> 0 then
       CloseHandle(Mutex);
     Halt(1);

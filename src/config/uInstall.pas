@@ -42,7 +42,7 @@ implementation
 
 uses
   Winapi.Windows, Winapi.ShellAPI, System.SysUtils,
-  uPaths, uUtils, uWallpaper, uStartup, uVersion;
+  uPaths, uUtils, uWallpaper, uStartup, uVersion, Languages;
 
 procedure LanzarHost;
 begin
@@ -142,20 +142,20 @@ begin
   if Result.HostInstalado then
   begin
     if not Result.InicioRegistrado then
-      Agregar('Falta el arranque automático.')
+      Agregar(Texto(txtMissingStartup))
     else if not Result.RunCorrecto then
-      Agregar('La entrada de arranque apunta a otra ruta.');
+      Agregar(Texto(txtStartupWrongPath));
     if not Result.ConfiguracionPresente then
-      Agregar('Falta el archivo de configuración.');
+      Agregar(Texto(txtMissingIni));
   end
   else
   begin
     if Result.InicioRegistrado then
-      Agregar('El arranque apunta a un programa que ya no existe.')
+      Agregar(Texto(txtStartupMissingExe))
     else if Result.CarpetaPresente then
-      Agregar('Quedan restos de una instalación anterior.');
+      Agregar(Texto(txtLeftovers));
     if Result.HostEnMarcha then
-      Agregar('Hay un cartel en marcha que no está instalado.');
+      Agregar(Texto(txtBadgeRunningNotInstalled));
   end;
   Result.Problema := Problemas;
   Result.RequiereReparacion := Problemas <> '';
@@ -168,35 +168,35 @@ begin
   if E.RequiereReparacion then
   begin
     if E.HostInstalado then
-      Result := 'Instalación incompleta · pulsa Reparar'
+      Result := Texto(txtRepairNeeded)
     else
-      Result := 'Sin instalar (hay restos) · pulsa Reparar';
+      Result := Texto(txtLeftoversRepair);
     Exit;
   end;
 
   if not E.HostInstalado then
   begin
-    Result := 'Sin instalar';
+    Result := Texto(txtNotInstalled);
     Exit;
   end;
 
   V := E.VersionInstalada;
   if V = '' then
     V := '?';
-  Result := 'Instalado · host ' + V;
   if E.ActualizacionDisponible then
   begin
-    Result := Result + ' → ' + E.VersionDisponible + ' disponible';
+    Result := TextoFmt(txtUpdateAvailable, [V, E.VersionDisponible]);
     Exit;
   end;
+  Result := TextoFmt(txtInstalledHost, [V]);
   if E.InicioRegistrado then
-    Result := Result + ' · arranque activo'
+    Result := Result + Texto(txtStartupActive)
   else
-    Result := Result + ' · arranque NO activo';
+    Result := Result + Texto(txtStartupInactive);
   if E.HostEnMarcha then
-    Result := Result + ' · cartel en marcha'
+    Result := Result + Texto(txtBadgeRunning)
   else
-    Result := Result + ' · cartel detenido';
+    Result := Result + Texto(txtBadgeStopped);
 end;
 
 function Instalar(const Ajustes: TSettings; out Mensaje: string): Boolean;
@@ -211,41 +211,40 @@ begin
 
   if not FileExists(Fuente) then
   begin
-    Mensaje := 'No encuentro ' + NombreHost +
-      ' junto al configurador. Compila el grupo completo.';
+    Mensaje := TextoFmt(txtHostNotFound, [NombreHost]);
     Exit;
   end;
 
   if not ForceDirectories(Dir) then
   begin
-    Mensaje := 'No se pudo crear la carpeta ' + Dir;
+    Mensaje := TextoFmt(txtCreateDirFailed, [Dir]);
     Exit;
   end;
 
   if HostEnEjecucion then
     if not CerrarHost(5000) then
     begin
-      Mensaje := 'El cartel sigue en marcha y no se puede actualizar. Cierralo e intentalo de nuevo.';
+      Mensaje := Texto(txtHostStillRunning);
       Exit;
     end;
 
   if not CopyFile(PChar(Fuente), PChar(RutaHostInstalado), False) then
   begin
     Err := GetLastError;
-    Mensaje := 'No se pudo copiar el programa de inicio: ' + SysErrorMessage(Err);
+    Mensaje := TextoFmt(txtCopyFailed, [SysErrorMessage(Err)]);
     Exit;
   end;
 
   if not GuardarAjustes(Ini, Ajustes) then
   begin
-    Mensaje := 'No se pudo escribir ' + Ini;
+    Mensaje := TextoFmt(txtWriteIniFailed, [Ini]);
     Exit;
   end;
 
   RegistrarInicio(RutaHostInstalado);
   if not InicioRegistrado then
   begin
-    Mensaje := 'Copiado, pero no se pudo registrar el arranque automatico.';
+    Mensaje := Texto(txtStartupRegisterFailed);
     Exit;
   end;
 
@@ -255,7 +254,7 @@ begin
     EsperarArranqueHost(3000);
   end;
 
-  Mensaje := 'Instalado en ' + Dir + ' y arranque activo.';
+  Mensaje := TextoFmt(txtInstalledIn, [Dir]);
   Result := True;
 end;
 
@@ -270,14 +269,13 @@ begin
 
   if not FileExists(Fuente) then
   begin
-    Mensaje := 'No encuentro ' + NombreHost +
-      ' junto al configurador. Compila el grupo completo.';
+    Mensaje := TextoFmt(txtHostNotFound, [NombreHost]);
     Exit;
   end;
 
   if not FileExists(Instalado) then
   begin
-    Mensaje := 'No hay una instalación que actualizar. Pulsa Instalar.';
+    Mensaje := Texto(txtNoInstallToUpdate);
     Exit;
   end;
 
@@ -286,7 +284,7 @@ begin
   if (VInst <> '') and (VNueva <> '') and
      (CompararVersiones(VNueva, VInst) <= 0) then
   begin
-    Mensaje := 'El programa de inicio ya está en la versión ' + VInst + '.';
+    Mensaje := TextoFmt(txtAlreadyVersion, [VInst]);
     Result := True;
     Exit;
   end;
@@ -294,14 +292,14 @@ begin
   if HostEnEjecucion then
     if not CerrarHost(5000) then
     begin
-      Mensaje := 'El cartel sigue en marcha y no se puede actualizar.';
+      Mensaje := Texto(txtHostRunningNoUpdate);
       Exit;
     end;
 
   if not CopyFile(PChar(Fuente), PChar(Instalado), False) then
   begin
     Err := GetLastError;
-    Mensaje := 'No se pudo copiar el programa de inicio: ' + SysErrorMessage(Err);
+    Mensaje := TextoFmt(txtCopyFailed, [SysErrorMessage(Err)]);
     Exit;
   end;
 
@@ -312,9 +310,9 @@ begin
   end;
 
   if VNueva <> '' then
-    Mensaje := 'Programa de inicio actualizado a ' + VNueva + '.'
+    Mensaje := TextoFmt(txtUpdatedTo, [VNueva])
   else
-    Mensaje := 'Programa de inicio actualizado.';
+    Mensaje := Texto(txtUpdated);
   Result := True;
 end;
 
@@ -326,14 +324,14 @@ begin
 
   if not FileExists(RutaHostInstalado) then
   begin
-    Mensaje := 'El programa de inicio no esta instalado. Pulsa Instalar.';
+    Mensaje := Texto(txtNotInstalledPressInstall);
     Exit;
   end;
 
   Dir := DirectorioInstalacion;
   if not GuardarAjustes(RutaIniInstalada, Ajustes) then
   begin
-    Mensaje := 'No se pudo guardar la configuracion en ' + RutaIniInstalada;
+    Mensaje := TextoFmt(txtSaveConfigFailed, [RutaIniInstalada]);
     Exit;
   end;
 
@@ -341,18 +339,18 @@ begin
   begin
     if not PrepararOriginal(Dir) then
     begin
-      Mensaje := 'No se pudo guardar una copia del fondo original.';
+      Mensaje := Texto(txtSaveOriginalFailed);
       Exit;
     end;
     Fondo := GenerarFondo(Dir, Ajustes);
     if not FileExists(Fondo) then
     begin
-      Mensaje := 'No se pudo generar la imagen de la banda.';
+      Mensaje := Texto(txtGenerateBandFailed);
       Exit;
     end;
     if not AplicarFondo(Fondo) then
     begin
-      Mensaje := 'No se pudo aplicar el fondo de pantalla.';
+      Mensaje := Texto(txtApplyWallpaperFailed);
       Exit;
     end;
   end
@@ -367,7 +365,7 @@ begin
     EsperarArranqueHost(3000);
   end;
 
-  Mensaje := 'Aplicado a las ' + TimeToStr(Now) + '.';
+  Mensaje := TextoFmt(txtApplied, [TimeToStr(Now)]);
   Result := True;
 end;
 
@@ -389,16 +387,16 @@ begin
   if ConservarConfiguracion then
   begin
     DeleteFile(Dir + NombreHost);
-    Mensaje := 'Desinstalado. Se conserva la configuracion en ' + Dir;
+    Mensaje := TextoFmt(txtUninstalledKeep, [Dir]);
   end
   else
   begin
     DeleteFile(Dir + NombreIni);
     DeleteFile(Dir + NombreHost);
     if DirectoryExists(Dir) and not RemoveDir(Dir) then
-      Mensaje := 'Desinstalado, pero la carpeta no se pudo borrar (puede estar en uso).'
+      Mensaje := Texto(txtUninstallFolderFailed)
     else
-      Mensaje := 'Desinstalado por completo. Fondo original restaurado.';
+      Mensaje := Texto(txtUninstalledAll);
   end;
 
   Result := True;

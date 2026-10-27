@@ -102,6 +102,20 @@ bin\DesktopIdentifier.exe       ~3.0 MB   (VCL, configurator + icon)
 version. `Compilar.cmd` regenerates `HostResources.res` and
 `ConfigResources.res` before building.
 
+### Installer
+
+**Download:** [DesktopIdentifier-Setup.exe](dist/DesktopIdentifier-Setup.exe)
+
+`CrearInstalador.cmd` builds both executables and compiles
+`dist\DesktopIdentifier-Setup.exe` with Inno Setup 6. The setup installs per
+user under `%LOCALAPPDATA%\Programs\Desktop Identifier`, creates the
+**Desktop Identifier** shortcut in the Start menu and registers the app in
+Windows *Installed apps*.
+
+Only the configurator appears in the Start menu and *Installed apps*. The host
+is not listed in either place, but the uninstaller removes it together with the
+startup entry, the applied wallpaper and the application data.
+
 ---
 
 ## Install, apply and uninstall

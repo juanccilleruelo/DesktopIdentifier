@@ -1,400 +1,276 @@
-# DesktopIdentifier
+# Desktop Identifier
 
-**Know which machine you're working on.**
+**Know at a glance which virtual machine you are working on.**
 
-Permanent visual mark to distinguish two cloned virtual machines that share a
-host:
+Two cloned VMs usually share the same wallpaper, icons and window layout. It is
+easy to run a command, delete a file or open a browser in the wrong one.
+Desktop Identifier marks the desktop with a permanent color band and a floating
+badge, so the answer is visible without thinking.
 
-- **Color band** at the top of the desktop, built into the wallpaper, with
-  configurable color, height, text and alignment.
-- **Floating badge** with any text you want; the window widens horizontally to
-  fit it. Panel and text color, size, opacities and corners; semi-transparent,
-  always on top and it **does not capture the mouse**: clicks pass through the
-  badge.
-- **Settings** on two tabs (Badge and Band), with a faithful preview and a
-  **Reapply band** button.
-- **Guided update** of the startup program and detection of incomplete
-  installations.
-- **Automatic startup** with the Windows session.
-- **Five UI languages** (Spanish, English, French, Italian and German), chosen
-  at startup from the Windows locale.
+**[Download the installer](dist/DesktopIdentifier-Setup.exe)** · Windows 10/11 ·
+per-user, no administrator rights.
 
-Current version: **1.1.0.0**.
+![Desktop preview](docs/capturas/resultado.png)
 
-No administrator required: everything is per user (`HKCU` and
-`%LOCALAPPDATA%\DesktopIdentifier`).
+*Preview: a blue **MACHINE A** band at the top and the floating **A** badge at
+the bottom right. The band is part of the wallpaper; the badge floats above the
+desktop.*
 
 ---
 
-## How it is organized
+## Why it helps
 
-Since phase 1 there are **two programs** with separate responsibilities:
+- **Instant identification:** the band and the badge are visible even when the
+  desktop is full of windows.
+- **No extra window in the way:** the badge is click-through, so you can keep
+  working underneath it.
+- **Two independent marks:** use a color band, a badge, or both. A blue `A` for
+  one VM and an orange `B` for the other is a good start.
+- **Every session:** the badge starts with Windows and the band is part of the
+  wallpaper, so the mark is there before you open anything.
+- **Useful for QA, support, training, demos and remote sessions**, where two
+  machines look the same on screen.
+
+It is a visual aid, not a security boundary: someone can still change the
+configuration if they have access to the session.
+
+## What it looks like
+
+### The band
+
+![Band close-up](docs/capturas/resultado-banda.png)
+
+The band is baked into the wallpaper at the top of the screen. Choose its color,
+height, text, text color and alignment (left, center or right). Windows repeats
+the wallpaper on every monitor, so the band appears on all of them.
+
+### The floating badge
+
+![Badge close-up](docs/capturas/resultado-cartel.png)
+
+The badge is a small always-on-top window at the bottom right. You can change
+its text, panel color, text color, size, panel/text opacity, corner radius and
+margins. It is semi-transparent and **does not capture the mouse**: clicks and
+typing go to the window below it.
+
+The badge text has **no length limit**. The box widens horizontally to fit the
+text; a single character keeps the classic square shape. For example, `A` stays
+square and `DESKTOP-A` becomes a wide pill that shows the whole word.
+
+### One color or two
+
+By default the **band color follows the badge color**. The Band tab has a
+*Synchronize badge and band colors* checkbox; while it is checked, the band
+color controls are disabled and the band always matches the badge. Uncheck it
+to choose a different color for the band.
+
+## Features
+
+- **Band** at the top of the desktop: color, height, text, text color and
+  alignment; part of the wallpaper and repeated on every monitor.
+- **Floating badge**: any text, automatic width, panel and text colors, size,
+  opacities, corners and margins; click-through and always on top.
+- **Color synchronization** between badge and band, on by default.
+- **Faithful preview** on two tabs (Badge and Band), with the same GDI+ renderer
+  used by the host.
+- **Five UI languages**: Spanish, English, French, Italian and German, chosen at
+  startup from the Windows locale.
+- **Automatic startup** with the Windows session.
+- **Guided update and repair**: the configurator detects a newer host or an
+  incomplete installation.
+- **Normal Windows installation**: Start menu shortcut and an entry in
+  *Installed apps*; no administrator rights.
+- **Clean uninstall**: removes the host, the startup entry, the applied
+  wallpaper and the application data, and restores the original wallpaper.
+
+## Install
+
+1. Download **[DesktopIdentifier-Setup.exe](dist/DesktopIdentifier-Setup.exe)**.
+2. Run the installer. It installs for the current user in
+   `%LOCALAPPDATA%\Programs\Desktop Identifier` and does not need administrator
+   rights.
+3. Open **Desktop Identifier** from the Start menu.
+
+The setup registers the application in Windows *Installed apps* and creates a
+Start menu shortcut. **Only the configurator appears in those places.** The
+startup program (`DesktopIdentifierHost.exe`) is intentionally hidden from the
+Start menu and from *Installed apps*, but the uninstaller removes it together
+with the startup entry and the data.
+
+To uninstall, use *Settings → Apps → Desktop Identifier → Uninstall* (or the
+uninstaller in the installation folder). The uninstaller closes the badge,
+removes the host, restores the original wallpaper and deletes the application
+data.
+
+## Quick start
+
+1. Open **Desktop Identifier**.
+2. In the **Badge** tab, type the text you want (`A`, `B`, `VM-1`, a machine
+   name, anything). The preview updates as you type.
+3. Pick a panel color. If **Synchronize badge and band colors** is checked (the
+   default), the band uses the same color.
+4. In the **Band** tab, enable the band, enter the label you want (for example
+   `MACHINE A`), and choose its height and alignment.
+5. Press **Apply**. The band is written to the wallpaper and the badge is
+   reloaded.
+6. Close the configurator. The badge stays on screen and starts automatically
+   with Windows.
+
+The status line at the bottom of the window shows whether the host is installed,
+whether startup is active and whether the badge is running.
+
+## Settings
+
+The two tabs use a bold, slightly larger caption so they are easy to find, while
+the controls keep the normal application font.
+
+| Badge tab | Band tab |
+|---|---|
+| ![Badge settings](docs/capturas/cartel.png) | ![Band settings](docs/capturas/banda.png) |
+
+**Badge:** text (no length limit), panel color, text color, size, panel opacity,
+text opacity, corner radius, right/bottom margins and monitor.
+
+**Band:** enable/disable, color (or synchronized with the badge), height, text
+(no length limit; the font is reduced if the band is too narrow), text color and
+alignment.
+
+The configurator saves changes to
+`%LOCALAPPDATA%\DesktopIdentifier\desktopidentifier.ini` with atomic writes. The
+host re-reads it when it receives the `DesktopIdentifier_RELOAD` message, so
+**Apply** does not restart the host.
+
+## Languages
+
+The UI follows the Windows locale:
+
+| Locale | Language |
+|---|---|
+| `es-*` | Spanish |
+| `fr-*` | French |
+| `it-*` | Italian |
+| `de-*` | German |
+| anything else | English |
+
+There is no manual selector and no environment variable: the language is chosen
+at startup. The host title and its startup error message use the same language.
+The strings live in `src/common/Languages.pas`; adding a language means adding a
+column to the table and a case in the detector.
+
+## Startup, update and repair
+
+- **Startup:** installing writes one per-user entry under
+  `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. The host starts with the
+  session and paints the badge.
+- **Update:** if the host that comes with the configurator is newer than the
+  installed one, the main button changes to **Update** and asks for confirmation.
+  The settings and the startup entry are preserved.
+- **Repair:** if the startup entry, the INI or the host is missing, or the
+  startup entry points to the wrong place, the window shows the specific problem
+  and offers **Repair**.
+- **Reinstall:** copies the host again and reapplies the current settings.
+
+## How it works
+
+There are two programs:
 
 | Program | Executable | Role |
 |---|---|---|
-| Configurator | `DesktopIdentifier.exe` | Settings window, generation of the band, installation and uninstallation |
-| Startup program | `DesktopIdentifierHost.exe` | Only the floating badge; Win32 without VCL, minimal footprint |
+| Configurator | `DesktopIdentifier.exe` | Settings window, band generation, installation and uninstallation |
+| Startup program | `DesktopIdentifierHost.exe` | Only the floating badge; Win32 without VCL |
+
+**The band** is generated by the configurator at the real screen resolution,
+added to a copy of the original wallpaper and applied with
+`SystemParametersInfo(SPI_SETDESKWALLPAPER)`. The original wallpaper is saved in
+`fondo-original.dat` / `fondo-original.ini` and restored on uninstall.
+
+**The badge** is a layered Win32 window
+(`WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE`,
+`HWND_TOPMOST`). It draws with GDI+ into a 32-bpp premultiplied DIB and updates it
+with `UpdateLayeredWindow`. A timer reasserts the topmost order and repositions
+the badge if the monitor, the work area or the DPI changes.
+
+The host does not use VCL. It reads the INI with the Win32 API and keeps the
+settings in its own record; linking `System.Classes` would make the executable
+grow above 1 MB. The result is a small background process that spends most of
+its time doing nothing.
+
+The configurator and the host communicate with the registered messages
+`DesktopIdentifier_RELOAD` and `DesktopIdentifier_QUIT`; a mutex
+(`Local\DesktopIdentifier_Host`) keeps a single host instance.
+
+## Files and data
+
+The application data lives in `%LOCALAPPDATA%\DesktopIdentifier`:
 
 ```
-src\
-  common\      uPaths, uSettings, uUtils, uBadgeRender, Languages
-               (shared, without VCL)
-  config\      DesktopIdentifier.dpr, uConfigForm, uBandRender, uWallpaper,
-               uStartup, uInstall, uVersion, manifest and resources
-  host\        DesktopIdentifierHost.dpr, uHostWindow, manifest and resources
-bin\           build output (ignored)
-dcu\           compiled units (ignored)
-```
-
-The settings live in **`%LOCALAPPDATA%\DesktopIdentifier\`**:
-
-```
-desktopidentifier.ini     settings (written by the configurator)
+desktopidentifier.ini     settings
 DesktopIdentifierHost.exe installed startup program
-fondo-distintivo.png      wallpaper with the band (generated by the configurator)
-fondo-original.dat/.ini   copy and data of the user's original wallpaper
+fondo-distintivo.png      wallpaper with the band
+fondo-original.dat/.ini   copy and data of the original wallpaper
 ```
 
-**Installing** (once) copies the host, writes the INI, registers startup and
-starts it. From then on, **Apply** only writes the INI and the wallpaper:
-**it does not copy the host again or touch the registry**.
+The installed application lives in
+`%LOCALAPPDATA%\Programs\Desktop Identifier` and includes the configurator, the
+host source used by repair/update, and the uninstaller.
 
-### Icon and taskbar
+## Build from source
 
-- The configurator is a normal window: its own icon (the "D" on the brand
-  blue), a taskbar button and a minimize button.
-- The host is still a tool window: no icon or taskbar button, as before.
-- The icon is in `src/config/DesktopIdentifier.ico` and is embedded as
-  `MAINICON` only in the configurator.
+Requirements: **RAD Studio / Delphi 12 (23.0), Win32**. No third-party Delphi
+packages.
 
-### Languages
+```bat
+Compilar.cmd --no-pause
+```
 
-- The UI follows the Windows locale (regional format): `es-*` → Spanish,
-  `fr-*` → French, `it-*` → Italian, `de-*` → German; any other locale →
-  English.
-- The strings are in `src/common/Languages.pas`. Adding a language means adding
-  a column to the table and a case in the detector.
-- The host uses the same unit for its window title and its startup error
-  message.
-- The INI comments and this documentation are always in English.
-- There is no environment variable or manual selector: the language is chosen
-  at startup from Windows.
-
----
-
-## Build
-
-Requirements: **RAD Studio / Delphi 12 (23.0), Win32**. No third-party packages.
-
-- **Console:** double-click `Compilar.cmd` (or `Compilar.cmd --no-pause` from a
-  script). It uses `dcc32`/`brcc32` from `%BDS%`, from the usual RAD Studio
-  path or from `PATH`.
-- **IDE:** open `DesktopIdentifier.groupproj` and build the group.
-
-Output:
+This builds:
 
 ```
 bin\DesktopIdentifierHost.exe   ~470 KB   (without VCL)
 bin\DesktopIdentifier.exe       ~3.0 MB   (VCL, configurator + icon)
 ```
 
-`HostResources.rc` and `ConfigResources.rc` contain the manifest and the
-version. `Compilar.cmd` regenerates `HostResources.res` and
-`ConfigResources.res` before building.
-
-### Installer
-
-**Download:** [DesktopIdentifier-Setup.exe](dist/DesktopIdentifier-Setup.exe)
-
-`CrearInstalador.cmd` builds both executables and compiles
-`dist\DesktopIdentifier-Setup.exe` with Inno Setup 6. The setup installs per
-user under `%LOCALAPPDATA%\Programs\Desktop Identifier`, creates the
-**Desktop Identifier** shortcut in the Start menu and registers the app in
-Windows *Installed apps*.
-
-Only the configurator appears in the Start menu and *Installed apps*. The host
-is not listed in either place, but the uninstaller removes it together with the
-startup entry, the applied wallpaper and the application data.
-
----
-
-## Install, apply and uninstall
-
-Open `Configurar.cmd` (or `bin\DesktopIdentifier.exe`). The window shows the
-real state: not installed, installed, startup active, badge running.
-
-The button in the first row changes according to the installation state:
-
-| Button | When | What it does |
-|---|---|---|
-| **Install** | Not installed | Copies the host to `%LOCALAPPDATA%\DesktopIdentifier`, writes the INI, registers startup and starts it. It also applies the band. |
-| **Update** | There is a new host version | Asks for confirmation, closes the badge, copies the new host, relaunches it and regenerates the band. It does **not** touch the INI or startup. |
-| **Repair** | Startup, INI or host is missing; or startup points to the wrong place | Restores the complete installation and applies the settings. |
-| **Reinstall** | Installed and up to date | Copies the host again and applies the current settings. |
-
-| Other buttons | What they do |
-|---|---|
-| **Apply** | Saves the INI, regenerates and applies the band (or restores the wallpaper if the band is disabled) and reloads the badge. It does **not** copy the host or write to the registry. |
-| **Uninstall** | Closes the badge, deletes the startup entry, restores the original wallpaper and deletes the folder. A checkbox lets you **keep the INI**. |
-| **Reapply band** | Rebuilds and applies the band with the current settings; useful if you have changed the desktop wallpaper by hand. |
-| **Close the badge** | Stops the host; the installation and startup remain intact. |
-
-### Version and update
-
-- The version lives in the resources (`*Resources.rc`) and is read from the
-  executable itself.
-- The configurator shows **its** version in the header and the **installed
-  host's** in the status line.
-- If the host that comes with the configurator is newer, the button changes to
-  **Update** and the window warns with both versions.
-- The update is the only exception to "Apply does not copy": it copies the new
-  host, but leaves the INI and the startup entry untouched.
-- The current version is **1.1.0.0**.
-
-### Repair
-
-Incomplete installations are detected:
-
-- startup points to an executable that no longer exists;
-- startup points to another path;
-- the INI is missing;
-- leftovers of the installation folder remain without the host;
-- there is a badge running that is not installed.
-
-In those cases the window shows **Incomplete installation · press Repair**, the
-button changes to **Repair** and it explains the specific problem.
-
-There is also a console mode (no window), useful for automation:
+To build the Windows installer:
 
 ```bat
-bin\DesktopIdentifier.exe /install              :: installs or updates
-bin\DesktopIdentifier.exe /apply
-bin\DesktopIdentifier.exe /uninstall            :: keeps the INI
-bin\DesktopIdentifier.exe /uninstall /discard   :: deletes everything
-bin\DesktopIdentifier.exe /quit
+CrearInstalador.cmd
 ```
 
-Exit codes: `0` correct; non-zero error (for example, `3` if `/apply` does not
-find an installation).
+`CrearInstalador.cmd` compiles both executables and then runs Inno Setup 6 to
+produce `dist\DesktopIdentifier-Setup.exe`. The installer script is
+`installer\DesktopIdentifier.iss`.
 
-### Startup with Windows
-
-Installing writes a single per-user entry:
+The project is organized as:
 
 ```
-HKCU\Software\Microsoft\Windows\CurrentVersion\Run
-    DesktopIdentifier = "C:\Users\<user>\AppData\Local\DesktopIdentifier\DesktopIdentifierHost.exe"
+src\common\   shared units (paths, settings, badge rendering, languages)
+src\config\   configurator (VCL), band renderer, wallpaper, install, version
+src\host\     startup program and layered window (no VCL)
+installer\    Inno Setup script
+docs\         plan, phase notes and screenshots
 ```
 
-At sign-in, Explorer launches the host; it reads the INI and paints the badge.
-The band is already applied because it is a persistent desktop setting. The
-entry can be disabled from *Task Manager → Startup apps*; reinstalling enables
-it again.
+## Limitations
 
----
-
-## Settings
-
-`desktopidentifier.ini` can be edited by hand. The host re-reads it when it
-receives the `DesktopIdentifier_RELOAD` message (sent by the configurator when
-applying).
-
-```ini
-[general]
-version=2
-
-[cartel]
-texto=A
-color=#1473E6
-color_texto=#FFFFFF
-tamano=170
-opacidad_panel=0.32
-opacidad_letra=0.95
-margen_derecha=30
-margen_inferior=30
-pantalla=0
-esquinas=0.24
-fuente=Segoe UI
-
-[banda]
-activa=1
-color_sincronizado=1
-color=#1473E6
-alto=0.08
-texto=
-color_texto=#FFFFFF
-alineacion=derecha
-```
-
-| Key | Values | Notes |
-|---|---|---|
-| `cartel.texto` | Any text | Default `A`; the host widens the badge to fit it |
-| `cartel.color` | `#RRGGBB` | Panel and border |
-| `cartel.color_texto` | `#RRGGBB` | Badge text color |
-| `cartel.tamano` | 90–280 | Pixels at 96 dpi; the host scales by DPI |
-| `cartel.opacidad_panel` | 0.10–0.60 | |
-| `cartel.opacidad_letra` | 0.30–1.00 | |
-| `cartel.margen_derecha` / `_inferior` | 0–1000 | Pixels |
-| `cartel.pantalla` | 0–8 | 0 = primary |
-| `cartel.esquinas` | 0.00–0.50 | Fraction of the size |
-| `cartel.fuente` | text | Default `Segoe UI` |
-| `banda.activa` | 0/1 | |
-| `banda.color_sincronizado` | 0/1 | 1 = the band color follows the badge color; the band color controls are disabled |
-| `banda.color` | `#RRGGBB` | Used when synchronization is off |
-| `banda.alto` | 0.02–0.20 | Fraction of the screen height |
-| `banda.texto` | Any text | Empty = no text; different from the badge text |
-| `banda.color_texto` | `#RRGGBB` | Band text color |
-| `banda.alineacion` | `derecha`, `centro`, `izquierda` | Band text position |
-
-By default the band color follows the badge panel color. The **Band** tab has
-a *Synchronize badge and band colors* checkbox; while it is checked, the band
-color controls are disabled. Uncheck it to choose a different band color.
-
-Out-of-range values are clamped; a missing or corrupt INI is equivalent to the
-default values. The configurator saves with **atomic writes** (temporary file +
-`MoveFileEx`), so the host never reads a half-written file.
-
-If an old `distintive.ini` exists (flat format, no sections) next to the
-configurator, it is imported the first time (`letra` → `cartel.texto`, `color` →
-badge and band, `banda_*` → `[banda]`).
-
----
-
-## Screenshots
-
-| Badge | Band |
-|---|---|
-| ![Badge tab](docs/capturas/cartel.png) | ![Band tab](docs/capturas/banda.png) |
-
----
-
-## How it works
-
-**Host (`DesktopIdentifierHost.exe`, without VCL).**
-
-- Own Win32 window with `WS_EX_LAYERED | WS_EX_TRANSPARENT |
-  WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE` and `HWND_TOPMOST`.
-- Drawing with GDI+ into an ARGB bitmap and copy to a **premultiplied 32 bpp
-  DIB**, which is what `UpdateLayeredWindow` expects.
-- The badge text is not limited. The window widens horizontally to fit it; a
-  single character keeps the square shape. The text color comes from
-  `cartel.color_texto`.
-- The band text is also reduced if it does not fit in width.
-- 3 s `SetTimer` that reasserts the topmost order and repositions if the work
-  area, the monitor or the DPI changed.
-- Per-monitor DPI (`GetDpiForMonitor`, with `GetDpiForWindow` as fallback) and
-  monitor selection by index.
-- Mutex `Local\DesktopIdentifier_Host` for a single instance; the registered
-  messages `DesktopIdentifier_RELOAD` and `DesktopIdentifier_QUIT` allow
-  controlling it from the configurator.
-- After painting, it trims its working set (`SetProcessWorkingSetSize`): the
-  badge spends most of its time doing nothing.
-
-**Configurator (`DesktopIdentifier.exe`, VCL).**
-
-- Composes the band at the real screen resolution, cropping the original image
-  the way Windows does (*fill*), and applies it with
-  `SystemParametersInfo(SPI_SETDESKWALLPAPER)`.
-- Before touching the desktop it saves `fondo-original.dat` and
-  `fondo-original.ini`; on uninstall it restores path, style and tiling. If the
-  original desktop was a solid color, it removes the wallpaper instead of
-  leaving the band.
-- Preview with the same GDI+ renderer as the host, on two tabs (Badge and
-  Band).
-- **Reapply band** button to recover the band if the wallpaper was changed.
-- Reads the version of the installed host and of the one that comes with the
-  configurator; if there is a new one, it offers **Update** and guides the
-  process.
-- Detects incomplete installations (broken startup, missing INI, leftovers) and
-  offers **Repair**.
-- State detection (installed, startup, badge running) and uninstall dialog with
-  the option to keep the settings.
-
-**Why the host does not use VCL.** The host only needs a window, a timer, GDI+
-and to read an INI. Linking `System.Classes` (even if only for `TStringList`)
-makes the executable grow above 1 MB; that is why the INI is read and written
-with the Win32 API and the settings use their own record.
-
----
-
-## Measurements on this machine
-
-| | Size | RAM |
-|---|---|---|
-| Host (Release) | **485,888 B** (~470 KB) | working set ~0.3 MB; private ~3.2 MB |
-| Configurator (Release) | **3,115,008 B** (~3.0 MB) | VCL, only when opened |
-| Previous version (single VCL) | ~2.6 MB | ~14.5 MB always in memory |
-
-Without the working-set trim, the host shows ~11 MB of working set due to the
-shared GDI+ pages and the system DLLs; its private memory is ~3.2 MB.
-
----
-
-## Tests performed (24–27/10/2026)
-
-- Host with the five expected styles (`LAYERED`, `TRANSPARENT`, `TOOLWINDOW`,
-  `NOACTIVATE`, `TOPMOST`), visible, without `APPWINDOW`; `WindowFromPoint` at
-  the center returns the window underneath (click-through).
-- Install: copy, INI, `Run` value, startup and host running.
-- Apply: the hash and date of the installed host and the `Run` value **do not
-  change**; the wallpaper is regenerated and the badge is repositioned.
-- Edit the INI by hand and send `RELOAD`: the badge changes without restarting.
-- Second host instance: it exits and leaves only one.
-- **Phase 2:** yellow `B2` badge over a purple panel and a blue-green band at
-  14% with `PRODUCCIÓN` centered in white; the band in the PNG measures 202 px
-  (14% of 1440). The UI controls (text and height) were tested by typing and
-  moving the slider, and the result was saved in the INI and on screen.
-- **Reapply band:** after changing the wallpaper by hand, the button rebuilt
-  the band and put `fondo-distintivo.png` back.
-- **Persistence:** after closing and relaunching the host, it kept showing `B2`
-  and reading the same values from the INI.
-- **INI validation:** 0 failures in the range, invalid alignment, old format
-  migration and round-trip tests.
-- **Phase 3 — update:** with the host installed at 1.0.0.0 and the new one at
-  1.1.0.0, the window showed "Update" and both versions; after confirming, the
-  installed host was 1.1.0.0 (440,320 B), the INI kept `texto=text` and the
-  `Run` value did not change.
-- **Phase 3 — repair:** by removing the `Run` value, pointing it to a
-  nonexistent path or deleting the INI, the window showed "Incomplete
-  installation · press Repair" with the specific problem; after repairing, the
-  startup and the host came back, and the user's settings were preserved.
-- **Phase 3 — long band text:** with 20 characters in a 700 px band, the text
-  is reduced so that it fits with margins.
-- **Phase 3 — version:** the header shows `v1.1.0.0` and the status shows the
-  installed host `1.1.0.0`.
-- **Localization:** with the Windows locale set to `es-ES`, `en-US`, `fr-FR`,
-  `it-IT` and `de-DE`, the window title and the UI changed to the corresponding
-  language; the host window title followed the same rule. The INI header
-  comments are in English.
-- Uninstall: closes the host, deletes `Run`, restores the original
-  `TranscodedWallpaper` (hash identical to the one before installing), keeps
-  only the INI or deletes the folder with `/discard`.
-
----
-
-## Limitations and pending work
-
-- The band is part of the wallpaper: Windows repeats it on **all** monitors.
-- If the wallpaper is changed by hand, the band disappears; press **Reapply
-  band**.
-- The host has no tray icon or window of its own: it is managed from the
-  configurator.
+- The band is part of the wallpaper, so it is the same on every monitor. If you
+  change the wallpaper by hand, the band disappears; press **Reapply band**.
 - In exclusive full-screen applications the badge may be hidden.
-- No custom icon in the host and no digital signature (same as before).
-- Phase 3 (version, guided update and repair) is complete. The tray icon, the
-  band gradient/shadow and the color copy between badge and band remain as
-  optional items.
-
----
-
-## Documentation
-
-- [Plan for splitting into two programs](docs/PLAN-DOS-PROGRAMAS.md)
-- [Phase 1: what was done and how it was verified](docs/FASE-1.md)
-- [Phase 2: new badge and band options](docs/FASE-2.md)
-- [Phase 3: version, update and repair](docs/FASE-3.md)
-- [Original context handover](docs/TRASPASO.md)
+- The host has no tray icon or window of its own; it is managed from the
+  configurator.
+- The host has no custom icon and the executables are not digitally signed.
+- This is a visual aid, not a security mechanism.
 
 ## License
 
-See [LICENSE](LICENSE).
+The source code is released under the **MIT License**. See [LICENSE](LICENSE).
+Copyright © 2026 Juan C. Cilleruelo.
+
+## Documentation
+
+- [Plan for splitting the application into two programs](docs/PLAN-DOS-PROGRAMAS.md)
+- [Phase 1: separation of configurator and host](docs/FASE-1.md)
+- [Phase 2: badge and band options](docs/FASE-2.md)
+- [Phase 3: version, update and repair](docs/FASE-3.md)
+- [Original context handover](docs/TRASPASO.md)
+
+Current version: **1.1.0.0**.

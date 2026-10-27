@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.singleton.1.10.0.schema.json
+PackageIdentifier: JuanCCilleruelo.DesktopIdentifier
+PackageVersion: 1.1.0.0
+PackageLocale: en-US
+Publisher: Juan C. Cilleruelo
+PublisherUrl: https://github.com/juanccilleruelo/DesktopIdentifier
+PublisherSupportUrl: https://github.com/juanccilleruelo/DesktopIdentifier/issues
+Author: Juan C. Cilleruelo
+PackageName: Desktop Identifier
+PackageUrl: https://github.com/juanccilleruelo/DesktopIdentifier
+License: MIT
+LicenseUrl: https://github.com/juanccilleruelo/DesktopIdentifier/blob/main/LICENSE
+Copyright: Copyright (c) 2026 Juan C. Cilleruelo
+ShortDescription: Visual band and floating badge to tell cloned Windows machines apart.
+Description: Desktop Identifier adds a colored band to the wallpaper and a floating, click-through badge to identify cloned Windows virtual machines at a glance. Configure the text, colors, size, opacity, corners and band alignment; badge and band colors can be synchronized. The badge does not capture the mouse, starts with Windows, and the UI is available in Spanish, English, French, Italian and German.
+Moniker: desktopidentifier
+Tags:
+- desktop
+- virtual-machine
+- vm
+- badge
+- wallpaper
+- identification
+- productivity
+Installers:
+- Architecture: x86
+  InstallerType: inno
+  InstallerUrl: https://raw.githubusercontent.com/juanccilleruelo/DesktopIdentifier/278d898/dist/DesktopIdentifier-Setup.exe
+  InstallerSha256: FD3AF507C7B15C693779255DF5D3BBF0DCA4B66F3C134557E9D0814696EAE8CE
+  InstallerSwitches:
+    Silent: /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+    SilentWithProgress: /SILENT /SUPPRESSMSGBOXES /NORESTART
+  Scope: user
+  InstallModes:
+  - interactive
+  - silent
+  - silentWithProgress
+  UpgradeBehavior: install
+  AppsAndFeaturesEntries:
+  - DisplayName: Desktop Identifier
+    Publisher: Desktop Identifier
+    DisplayVersion: 1.1.0.0
+ManifestType: singleton
+ManifestVersion: 1.10.0

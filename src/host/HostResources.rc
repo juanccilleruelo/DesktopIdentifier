@@ -14,12 +14,12 @@ BEGIN
         BLOCK "0C0A04B0"
         BEGIN
             VALUE "CompanyName", ""
-            VALUE "FileDescription", "DesktopIdentifier Host"
+            VALUE "FileDescription", "Desktop Identifier Host"
             VALUE "FileVersion", "1.1.0.0"
             VALUE "InternalName", "DesktopIdentifierHost"
             VALUE "LegalCopyright", ""
             VALUE "OriginalFilename", "DesktopIdentifierHost.exe"
-            VALUE "ProductName", "DesktopIdentifier"
+            VALUE "ProductName", "Desktop Identifier"
             VALUE "ProductVersion", "1.1.0.0"
         END
     END

@@ -103,8 +103,8 @@ band: the text is reduced and remains complete, with margins and centered.
 
 | | Size | RAM |
 |---|---|---|
-| Host 1.1.0.0 | **485,888 B** | working set ~0.9 MB; private ~3.2 MB |
-| Configurator 1.1.0.0 | **3,115,008 B** | VCL, only when opened |
+| Host 1.1.0.0 | **491,008 B** | working set ~0.9 MB; private ~3.2 MB |
+| Configurator 1.1.0.0 | **3,148,800 B** | VCL, only when opened |
 
 The update replaced the 2.76 MB Debug host with the 440 KB Release one. The
 localization change later added the language tables; see section 7.
@@ -114,8 +114,11 @@ localization change later added the language tables; see section 7.
 ## 5. Screenshots
 
 The screenshots of the final window are in
-[docs/capturas/cartel.png](capturas/cartel.png) and
-[docs/capturas/banda.png](capturas/banda.png).
+[docs/capturas/cartel.png](capturas/cartel.png),
+[docs/capturas/banda.png](capturas/banda.png) and
+[docs/capturas/desktop.png](capturas/desktop.png). The composed result with the
+desktop labels is in
+[docs/capturas/resultado-desktop.png](capturas/resultado-desktop.png).
 
 ---
 
@@ -166,7 +169,7 @@ Checks: with the Windows locale set to `es-ES`, `en-US`, `fr-FR`, `it-IT` and
 `de-DE`, the window title changed to `Configuración`, `Settings`, `Paramètres`,
 `Impostazioni` and `Einstellungen`; the Spanish, English, French, German and
 Italian layouts were inspected. The host window title follows the same table.
-The configurator measures **3,115,008 B**; the host **485,888 B**. The version
+The configurator measures **3,148,800 B**; the host **491,008 B**. The version
 remains 1.1.0.0; the installed host was replaced with the new binary.
 
 ---
@@ -189,12 +192,57 @@ remains 1.1.0.0; the installed host was replaced with the new binary.
 
 Checks: a badge text of `A` produced a 170 × 170 window; `DESKTOP-A` produced
 706 × 170 with the full text; the Band tab showed the sync checkbox checked and
-the band colour controls disabled. The configurator measures **3,115,008 B**;
-the host **485,888 B**.
+the band colour controls disabled. The configurator measures **3,148,800 B**;
+the host **491,008 B**.
 
 ---
 
-## 9. Pending (optional)
+## 9. Later changes — Desktop tab (27/10/2026)
+
+A third tab, **Desktop**, controls the base wallpaper and two labels:
+
+- Background type: **original wallpaper**, **solid color** or **gradient**. The
+  original is the copy saved by `PrepararOriginal`; a solid color uses one
+  colour and a gradient blends two colours from top to bottom.
+- Two optional labels. The large one is centered on the desktop; the small one
+  is placed below it, at 42 % of the large size. Both use the selected font
+  family and the base size, scaled from the 1080p reference to the real screen.
+  The labels are white with a shadow and are drawn before the band, so the band
+  stays on top.
+- `PrepararOriginal` is now called for any generated desktop, not only when the
+  band is active. The original wallpaper and its style are still restored on
+  uninstall.
+- The settings live in `[desktop]`: `fondo` (`original`, `solido`,
+  `degradado`), `color`, `color2`, `texto_grande`, `texto_pequeno`, `fuente`
+  and `tamano`.
+
+Checks: the three backgrounds were applied and inspected at 2560 × 1440; the
+large label stayed centered and the small label below it. The configurator
+measures **3,148,800 B**; the host **491,008 B**. The screenshot is
+[docs/capturas/resultado-desktop.png](capturas/resultado-desktop.png).
+
+---
+
+## 10. Later changes — visible name and hint labels (27/10/2026)
+
+- The user-facing name is **Desktop Identifier** in the window title, the header,
+  the host window title, the uninstall dialog and the executable version
+  metadata. Executable filenames, the data folder, the installation path, the
+  `Run` value, the mutex and the registered messages keep the historical
+  `DesktopIdentifier` spelling so existing installations and messages continue
+  to work.
+- The **No limit** hint next to the badge text and the **Empty = no text** hint
+  next to the band text were removed; the text fields are still unbounded and an
+  empty field still means no text.
+- Both executables and the installer were rebuilt. The configurator measures
+  **3,148,800 B**, the host **491,008 B**, and the installer
+  `dist\DesktopIdentifier-Setup.exe` measures **3,258,381 B**
+  (SHA-256 `9D11AD53F7502C945722751B3EC591E165EE55497FD8064177E50D10DAD2895D`).
+  The version remains 1.1.0.0.
+
+---
+
+## 11. Pending (optional)
 
 - Tray icon or host menu.
 - Band gradient/shadow and color copy between badge and band.

@@ -3,6 +3,14 @@
 Manifest for submitting **Desktop Identifier** to the
 [Windows Package Manager community repository](https://github.com/microsoft/winget-pkgs).
 
+> **Before submitting the Desktop-tab build:** the URL and hash below belong to
+> the earlier 1.1.0.0 installer (commit `278d898`). After rebuilding
+> `dist\DesktopIdentifier-Setup.exe`, update `InstallerUrl` to the new committed
+> setup and replace `InstallerSha256` with its hash, or publish a new version.
+> The local setup built with the Desktop tab has SHA-256
+> `9D11AD53F7502C945722751B3EC591E165EE55497FD8064177E50D10DAD2895D`; it is not
+> public until it is committed.
+
 | | |
 |---|---|
 | Package identifier | `JuanCCilleruelo.DesktopIdentifier` |

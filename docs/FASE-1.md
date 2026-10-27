@@ -5,7 +5,10 @@
 **Base:** [PLAN-DOS-PROGRAMAS.md](PLAN-DOS-PROGRAMAS.md)
 
 > **Note:** phase 2 (band color, height and text, text color and Reapply band)
-> was implemented later; see [FASE-2.md](FASE-2.md).
+> was implemented later; see [FASE-2.md](FASE-2.md). The **Desktop** tab was added
+> later still; see [FASE-3.md](FASE-3.md), section 9. The visible product name is
+> now **Desktop Identifier**; technical filenames and paths keep
+> `DesktopIdentifier`.
 
 ---
 

@@ -148,7 +148,7 @@ begin
 
   L := TStringList.Create;
   try
-    L.Add('; Original wallpaper saved by DesktopIdentifier. Do not delete: it is used on uninstall.');
+    L.Add('; Original wallpaper saved by Desktop Identifier. Do not delete: it is used on uninstall.');
     L.Add('ruta=' + Ruta);
     L.Add('estilo=' + Estilo);
     L.Add('mosaico=' + Mosaico);
@@ -192,6 +192,8 @@ var
   Alto, SombraAlto, Escala: Single;
   Area, SombraR: TGPRectF;
   Br: TGPLinearGradientBrush;
+  Pincel: TGPSolidBrush;
+  TamanoTexto: Integer;
   Dibujado: Boolean;
 begin
   if not ResolucionPrimaria(W, H) then
@@ -216,37 +218,69 @@ begin
       G.SetPixelOffsetMode(PixelOffsetModeHighQuality);
 
       Dibujado := False;
-      Ruta := RutaOriginal(Dir);
-      if Ruta <> '' then
+      if Ajustes.DesktopFondo = dfOriginal then
       begin
-        try
-          Src := TGPImage.Create(WideString(Ruta));
+        Ruta := RutaOriginal(Dir);
+        if Ruta <> '' then
+        begin
           try
-            Escala := Max(Double(W) / Src.GetWidth, Double(H) / Src.GetHeight);
-            Dw := Ceil(Src.GetWidth * Escala);
-            Dh := Ceil(Src.GetHeight * Escala);
-            Dx := (W - Dw) div 2;
-            Dy := (H - Dh) div 2;
-            G.DrawImage(Src, Dx, Dy, Dw, Dh);
-            Dibujado := True;
-          finally
-            Src.Free;
+            Src := TGPImage.Create(WideString(Ruta));
+            try
+              Escala := Max(Double(W) / Src.GetWidth, Double(H) / Src.GetHeight);
+              Dw := Ceil(Src.GetWidth * Escala);
+              Dh := Ceil(Src.GetHeight * Escala);
+              Dx := (W - Dw) div 2;
+              Dy := (H - Dh) div 2;
+              G.DrawImage(Src, Dx, Dy, Dw, Dh);
+              Dibujado := True;
+            finally
+              Src.Free;
+            end;
+          except
+            Dibujado := False;
           end;
-        except
-          Dibujado := False;
         end;
       end;
 
       if not Dibujado then
       begin
-        Br := TGPLinearGradientBrush.Create(RF(0, 0, W, H),
-          MakeColor(255, 22, 24, 32), MakeColor(255, 54, 58, 72), 90);
-        try
-          G.FillRectangle(Br, RF(0, 0, W, H));
-        finally
-          Br.Free;
+        if Ajustes.DesktopFondo = dfSolido then
+        begin
+          Pincel := TGPSolidBrush.Create(ArgbDe(Ajustes.DesktopColor, 255));
+          try
+            G.FillRectangle(Pincel, RF(0, 0, W, H));
+          finally
+            Pincel.Free;
+          end;
+        end
+        else if Ajustes.DesktopFondo = dfDegradado then
+        begin
+          Br := TGPLinearGradientBrush.Create(RF(0, 0, W, H),
+            ArgbDe(Ajustes.DesktopColor, 255),
+            ArgbDe(Ajustes.DesktopColor2, 255), 90);
+          try
+            G.FillRectangle(Br, RF(0, 0, W, H));
+          finally
+            Br.Free;
+          end;
+        end
+        else
+        begin
+          Br := TGPLinearGradientBrush.Create(RF(0, 0, W, H),
+            MakeColor(255, 22, 24, 32), MakeColor(255, 54, 58, 72), 90);
+          try
+            G.FillRectangle(Br, RF(0, 0, W, H));
+          finally
+            Br.Free;
+          end;
         end;
       end;
+
+      TamanoTexto := Round(Ajustes.DesktopTamano * H / 1080);
+      if TamanoTexto < 8 then
+        TamanoTexto := 8;
+      DibujarTextoEscritorio(G, RF(0, 0, W, H), Ajustes.DesktopTextoGrande,
+        Ajustes.DesktopTextoPequeno, Ajustes.DesktopFuente, TamanoTexto);
 
       Alto := H * Ajustes.BandaAlto;
       if Alto < 10 then

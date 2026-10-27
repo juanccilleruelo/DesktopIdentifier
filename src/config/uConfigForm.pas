@@ -22,6 +22,7 @@ type
     FPages: TPageControl;
     FTabCartel: TTabSheet;
     FTabBanda: TTabSheet;
+    FTabEscritorio: TTabSheet;
     // Cartel
     FEdTexto: TEdit;
     FSwCartel: TPanel;
@@ -53,6 +54,29 @@ type
     FLblAlto: TLabel;
     FEdTextoBanda: TEdit;
     FCbAlineacion: TComboBox;
+    // Escritorio
+    FRgFondo: TRadioGroup;
+    FLblDesktopColor: TLabel;
+    FSwDesktopColor: TPanel;
+    FLblDesktopColorHex: TLabel;
+    FBtnDesktopColor: TButton;
+    FLblDesktopColor1: TLabel;
+    FSwDesktopColor1: TPanel;
+    FLblDesktopColor1Hex: TLabel;
+    FBtnDesktopColor1: TButton;
+    FLblDesktopColor2: TLabel;
+    FSwDesktopColor2: TPanel;
+    FLblDesktopColor2Hex: TLabel;
+    FBtnDesktopColor2: TButton;
+    FLblDesktopTextLarge: TLabel;
+    FEdDesktopGrande: TEdit;
+    FLblDesktopTextSmall: TLabel;
+    FEdDesktopPequeno: TEdit;
+    FLblDesktopFont: TLabel;
+    FCbDesktopFuente: TComboBox;
+    FLblDesktopFontSize: TLabel;
+    FSeDesktopTamano: TSpinEdit;
+    FLblDesktopHint: TLabel;
     // Vista previa y estado
     FPbPreview: TPaintBox;
     FLblInstalacion: TLabel;
@@ -68,12 +92,16 @@ type
     FColorTexto: TRgb;
     FColorBanda: TRgb;
     FColorTextoBanda: TRgb;
+    FondoEscritorio: TDesktopFondo;
+    FColorDesktop: TRgb;
+    FColorDesktop2: TRgb;
     FColorPersonalizado: Boolean;
     FAjustes: TSettings;
     FHIconSmall: HICON;
     procedure CrearControles;
     procedure CrearTabCartel;
     procedure CrearTabBanda;
+    procedure CrearTabEscritorio;
     procedure ActualizarVista;
     procedure PintarVista(Sender: TObject);
     procedure AjustarFuentesPestanas(AControl: TWinControl);
@@ -84,6 +112,12 @@ type
     procedure CambiarColorTextoBanda(Sender: TObject);
     procedure CambioSincronizarColor(Sender: TObject);
     procedure AjustarControlesColorBanda;
+    procedure CambiarColorDesktop(Sender: TObject);
+    procedure CambiarColorDesktop1(Sender: TObject);
+    procedure CambiarColorDesktop2(Sender: TObject);
+    procedure CambioFondoEscritorio(Sender: TObject);
+    procedure CambioTextoEscritorio(Sender: TObject);
+    procedure AjustarControlesFondoEscritorio;
     procedure CambioTamano(Sender: TObject);
     procedure CambioOpacidad(Sender: TObject);
     procedure CambioOpacidadTexto(Sender: TObject);
@@ -174,6 +208,9 @@ begin
   if FAjustes.BandaColorSincronizado then
     FColorBanda := FColor;
   FColorTextoBanda := FAjustes.BandaColorTexto;
+  FondoEscritorio := FAjustes.DesktopFondo;
+  FColorDesktop := FAjustes.DesktopColor;
+  FColorDesktop2 := FAjustes.DesktopColor2;
   FColorPersonalizado := not ColorAutomatico;
 
   CrearControles;
@@ -292,11 +329,17 @@ begin
   FTabBanda.PageControl := FPages;
   FTabBanda.Caption := Texto(txtTabBand);
 
+  FTabEscritorio := TTabSheet.Create(Self);
+  FTabEscritorio.PageControl := FPages;
+  FTabEscritorio.Caption := Texto(txtTabDesktop);
+
   CrearTabCartel;
   CrearTabBanda;
+  CrearTabEscritorio;
 
   AjustarFuentesPestanas(FPages);
   AjustarControlesColorBanda;
+  AjustarControlesFondoEscritorio;
 
   FPages.ActivePage := FTabCartel;
 
@@ -372,12 +415,6 @@ begin
   FEdTexto.Text := FAjustes.Texto;
   FEdTexto.SetBounds(122, 13, 80, 24);
   FEdTexto.OnChange := TextoCambiado;
-
-  L := TLabel.Create(Self);
-  L.Parent := FTabCartel;
-  L.Caption := Texto(txtBadgeTextHint);
-  L.Font.Color := RGB(110, 110, 110);
-  L.SetBounds(210, 17, 120, 18);
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
@@ -651,12 +688,6 @@ begin
 
   L := TLabel.Create(Self);
   L.Parent := FTabBanda;
-  L.Caption := Texto(txtBandTextHint);
-  L.Font.Color := RGB(110, 110, 110);
-  L.SetBounds(378, 181, 150, 18);
-
-  L := TLabel.Create(Self);
-  L.Parent := FTabBanda;
   L.Caption := Texto(txtBandAlignment);
   L.SetBounds(8, 215, 140, 18);
 
@@ -683,6 +714,168 @@ begin
   L.SetBounds(8, 275, 540, 18);
 end;
 
+procedure TConfigForm.CrearTabEscritorio;
+var
+  L: TLabel;
+begin
+  FRgFondo := TRadioGroup.Create(Self);
+  FRgFondo.Parent := FTabEscritorio;
+  FRgFondo.Caption := Texto(txtBackground);
+  FRgFondo.Columns := 3;
+  FRgFondo.Items.Add(Texto(txtBackgroundOriginal));
+  FRgFondo.Items.Add(Texto(txtBackgroundSolid));
+  FRgFondo.Items.Add(Texto(txtBackgroundGradient));
+  FRgFondo.ItemIndex := Ord(FAjustes.DesktopFondo);
+  FRgFondo.SetBounds(8, 6, 540, 50);
+  FRgFondo.OnClick := CambioFondoEscritorio;
+
+  FLblDesktopColor := TLabel.Create(Self);
+  FLblDesktopColor.Parent := FTabEscritorio;
+  FLblDesktopColor.Caption := Texto(txtDesktopSolidColor);
+  FLblDesktopColor.SetBounds(8, 62, 140, 18);
+
+  FSwDesktopColor := TPanel.Create(Self);
+  FSwDesktopColor.Parent := FTabEscritorio;
+  FSwDesktopColor.SetBounds(150, 58, 48, 26);
+  FSwDesktopColor.BevelOuter := bvNone;
+  FSwDesktopColor.Color := RgbATColor(FColorDesktop);
+  FSwDesktopColor.StyleElements := [];
+
+  FLblDesktopColorHex := TLabel.Create(Self);
+  FLblDesktopColorHex.Parent := FTabEscritorio;
+  FLblDesktopColorHex.Caption := RgbAHex(FColorDesktop);
+  FLblDesktopColorHex.Font.Name := 'Consolas';
+  FLblDesktopColorHex.Font.Size := 10;
+  FLblDesktopColorHex.Font.Style := [fsBold];
+  FLblDesktopColorHex.ParentFont := False;
+  FLblDesktopColorHex.SetBounds(204, 62, 70, 20);
+
+  FBtnDesktopColor := TButton.Create(Self);
+  FBtnDesktopColor.Parent := FTabEscritorio;
+  FBtnDesktopColor.Caption := Texto(txtChange);
+  FBtnDesktopColor.SetBounds(278, 56, 110, 28);
+  FBtnDesktopColor.OnClick := CambiarColorDesktop;
+
+  FLblDesktopColor1 := TLabel.Create(Self);
+  FLblDesktopColor1.Parent := FTabEscritorio;
+  FLblDesktopColor1.Caption := Texto(txtDesktopGradientColor1);
+  FLblDesktopColor1.SetBounds(8, 96, 140, 18);
+
+  FSwDesktopColor1 := TPanel.Create(Self);
+  FSwDesktopColor1.Parent := FTabEscritorio;
+  FSwDesktopColor1.SetBounds(150, 92, 48, 26);
+  FSwDesktopColor1.BevelOuter := bvNone;
+  FSwDesktopColor1.Color := RgbATColor(FColorDesktop);
+  FSwDesktopColor1.StyleElements := [];
+
+  FLblDesktopColor1Hex := TLabel.Create(Self);
+  FLblDesktopColor1Hex.Parent := FTabEscritorio;
+  FLblDesktopColor1Hex.Caption := RgbAHex(FColorDesktop);
+  FLblDesktopColor1Hex.Font.Name := 'Consolas';
+  FLblDesktopColor1Hex.Font.Size := 10;
+  FLblDesktopColor1Hex.Font.Style := [fsBold];
+  FLblDesktopColor1Hex.ParentFont := False;
+  FLblDesktopColor1Hex.SetBounds(204, 96, 70, 20);
+
+  FBtnDesktopColor1 := TButton.Create(Self);
+  FBtnDesktopColor1.Parent := FTabEscritorio;
+  FBtnDesktopColor1.Caption := Texto(txtChange);
+  FBtnDesktopColor1.SetBounds(278, 90, 110, 28);
+  FBtnDesktopColor1.OnClick := CambiarColorDesktop1;
+
+  FLblDesktopColor2 := TLabel.Create(Self);
+  FLblDesktopColor2.Parent := FTabEscritorio;
+  FLblDesktopColor2.Caption := Texto(txtDesktopGradientColor2);
+  FLblDesktopColor2.SetBounds(8, 130, 140, 18);
+
+  FSwDesktopColor2 := TPanel.Create(Self);
+  FSwDesktopColor2.Parent := FTabEscritorio;
+  FSwDesktopColor2.SetBounds(150, 126, 48, 26);
+  FSwDesktopColor2.BevelOuter := bvNone;
+  FSwDesktopColor2.Color := RgbATColor(FColorDesktop2);
+  FSwDesktopColor2.StyleElements := [];
+
+  FLblDesktopColor2Hex := TLabel.Create(Self);
+  FLblDesktopColor2Hex.Parent := FTabEscritorio;
+  FLblDesktopColor2Hex.Caption := RgbAHex(FColorDesktop2);
+  FLblDesktopColor2Hex.Font.Name := 'Consolas';
+  FLblDesktopColor2Hex.Font.Size := 10;
+  FLblDesktopColor2Hex.Font.Style := [fsBold];
+  FLblDesktopColor2Hex.ParentFont := False;
+  FLblDesktopColor2Hex.SetBounds(204, 130, 70, 20);
+
+  FBtnDesktopColor2 := TButton.Create(Self);
+  FBtnDesktopColor2.Parent := FTabEscritorio;
+  FBtnDesktopColor2.Caption := Texto(txtChange);
+  FBtnDesktopColor2.SetBounds(278, 124, 110, 28);
+  FBtnDesktopColor2.OnClick := CambiarColorDesktop2;
+
+  FLblDesktopTextLarge := TLabel.Create(Self);
+  FLblDesktopTextLarge.Parent := FTabEscritorio;
+  FLblDesktopTextLarge.Caption := Texto(txtDesktopTextLarge);
+  FLblDesktopTextLarge.SetBounds(8, 166, 140, 18);
+
+  FEdDesktopGrande := TEdit.Create(Self);
+  FEdDesktopGrande.Parent := FTabEscritorio;
+  FEdDesktopGrande.MaxLength := 0;
+  FEdDesktopGrande.Text := FAjustes.DesktopTextoGrande;
+  FEdDesktopGrande.SetBounds(150, 162, 380, 24);
+  FEdDesktopGrande.OnChange := CambioTextoEscritorio;
+
+  FLblDesktopTextSmall := TLabel.Create(Self);
+  FLblDesktopTextSmall.Parent := FTabEscritorio;
+  FLblDesktopTextSmall.Caption := Texto(txtDesktopTextSmall);
+  FLblDesktopTextSmall.SetBounds(8, 200, 140, 18);
+
+  FEdDesktopPequeno := TEdit.Create(Self);
+  FEdDesktopPequeno.Parent := FTabEscritorio;
+  FEdDesktopPequeno.MaxLength := 0;
+  FEdDesktopPequeno.Text := FAjustes.DesktopTextoPequeno;
+  FEdDesktopPequeno.SetBounds(150, 196, 380, 24);
+  FEdDesktopPequeno.OnChange := CambioTextoEscritorio;
+
+  FLblDesktopFont := TLabel.Create(Self);
+  FLblDesktopFont.Parent := FTabEscritorio;
+  FLblDesktopFont.Caption := Texto(txtDesktopFont);
+  FLblDesktopFont.SetBounds(8, 238, 140, 18);
+
+  FCbDesktopFuente := TComboBox.Create(Self);
+  FCbDesktopFuente.Parent := FTabEscritorio;
+  FCbDesktopFuente.Style := csDropDown;
+  FCbDesktopFuente.Items.Assign(Screen.Fonts);
+  FCbDesktopFuente.Sorted := True;
+  FCbDesktopFuente.Text := FAjustes.DesktopFuente;
+  FCbDesktopFuente.SetBounds(150, 234, 200, 24);
+  FCbDesktopFuente.OnChange := CambioTextoEscritorio;
+
+  FLblDesktopFontSize := TLabel.Create(Self);
+  FLblDesktopFontSize.Parent := FTabEscritorio;
+  FLblDesktopFontSize.Caption := Texto(txtDesktopFontSize);
+  FLblDesktopFontSize.SetBounds(370, 238, 80, 18);
+
+  FSeDesktopTamano := TSpinEdit.Create(Self);
+  FSeDesktopTamano.Parent := FTabEscritorio;
+  FSeDesktopTamano.MinValue := 24;
+  FSeDesktopTamano.MaxValue := 200;
+  FSeDesktopTamano.Increment := 2;
+  FSeDesktopTamano.Value := FAjustes.DesktopTamano;
+  FSeDesktopTamano.SetBounds(450, 234, 60, 24);
+  FSeDesktopTamano.OnChange := CambioTextoEscritorio;
+
+  L := TLabel.Create(Self);
+  L.Parent := FTabEscritorio;
+  L.Caption := 'px';
+  L.SetBounds(516, 238, 30, 18);
+
+  FLblDesktopHint := TLabel.Create(Self);
+  FLblDesktopHint.Parent := FTabEscritorio;
+  FLblDesktopHint.Caption := Texto(txtDesktopHint);
+  FLblDesktopHint.Font.Color := RGB(110, 110, 110);
+  FLblDesktopHint.AutoSize := False;
+  FLblDesktopHint.WordWrap := True;
+  FLblDesktopHint.SetBounds(8, 276, 540, 34);
+end;
+
 procedure TConfigForm.AjustarFuentesPestanas(AControl: TWinControl);
 var
   I: Integer;
@@ -697,6 +890,8 @@ begin
     begin
       if (C <> FLblCartelHex) and (C <> FLblTextoHex) and
          (C <> FLblBandaHex) and (C <> FLblTextoBandaHex) and
+         (C <> FLblDesktopColorHex) and (C <> FLblDesktopColor1Hex) and
+         (C <> FLblDesktopColor2Hex) and
          (C <> FLblOpacidad) and (C <> FLblOpacidadTexto) and
          (C <> FLblEsquinas) and (C <> FLblAlto) then
       begin
@@ -726,6 +921,65 @@ begin
     FColorBanda := FColor;
   AjustarControlesColorBanda;
   ActualizarVista;
+end;
+
+procedure TConfigForm.CambiarColorDesktop(Sender: TObject);
+begin
+  if FondoEscritorio <> dfSolido then
+    Exit;
+  if ElegirColor(FColorDesktop) then
+    ActualizarVista;
+end;
+
+procedure TConfigForm.CambiarColorDesktop1(Sender: TObject);
+begin
+  if FondoEscritorio <> dfDegradado then
+    Exit;
+  if ElegirColor(FColorDesktop) then
+    ActualizarVista;
+end;
+
+procedure TConfigForm.CambiarColorDesktop2(Sender: TObject);
+begin
+  if FondoEscritorio <> dfDegradado then
+    Exit;
+  if ElegirColor(FColorDesktop2) then
+    ActualizarVista;
+end;
+
+procedure TConfigForm.CambioFondoEscritorio(Sender: TObject);
+begin
+  FondoEscritorio := TDesktopFondo(FRgFondo.ItemIndex);
+  AjustarControlesFondoEscritorio;
+  ActualizarVista;
+end;
+
+procedure TConfigForm.CambioTextoEscritorio(Sender: TObject);
+begin
+  FPbPreview.Invalidate;
+end;
+
+procedure TConfigForm.AjustarControlesFondoEscritorio;
+var
+  Solido, Degradado: Boolean;
+begin
+  Solido := FondoEscritorio = dfSolido;
+  Degradado := FondoEscritorio = dfDegradado;
+
+  FLblDesktopColor.Enabled := Solido;
+  FSwDesktopColor.Enabled := Solido;
+  FLblDesktopColorHex.Enabled := Solido;
+  FBtnDesktopColor.Enabled := Solido;
+
+  FLblDesktopColor1.Enabled := Degradado;
+  FSwDesktopColor1.Enabled := Degradado;
+  FLblDesktopColor1Hex.Enabled := Degradado;
+  FBtnDesktopColor1.Enabled := Degradado;
+
+  FLblDesktopColor2.Enabled := Degradado;
+  FSwDesktopColor2.Enabled := Degradado;
+  FLblDesktopColor2Hex.Enabled := Degradado;
+  FBtnDesktopColor2.Enabled := Degradado;
 end;
 
 function TConfigForm.AlineacionSeleccionada: string;
@@ -762,6 +1016,13 @@ begin
   Result.BandaTexto := Trim(FEdTextoBanda.Text);
   Result.BandaColorTexto := FColorTextoBanda;
   Result.BandaAlineacion := AlineacionSeleccionada;
+  Result.DesktopFondo := FondoEscritorio;
+  Result.DesktopColor := FColorDesktop;
+  Result.DesktopColor2 := FColorDesktop2;
+  Result.DesktopTextoGrande := Trim(FEdDesktopGrande.Text);
+  Result.DesktopTextoPequeno := Trim(FEdDesktopPequeno.Text);
+  Result.DesktopFuente := Trim(FCbDesktopFuente.Text);
+  Result.DesktopTamano := FSeDesktopTamano.Value;
   Result := AjustesValidos(Result);
 end;
 
@@ -800,6 +1061,12 @@ begin
   FLblBandaHex.Caption := RgbAHex(FColorBanda);
   FSwTextoBanda.Color := RgbATColor(FColorTextoBanda);
   FLblTextoBandaHex.Caption := RgbAHex(FColorTextoBanda);
+  FSwDesktopColor.Color := RgbATColor(FColorDesktop);
+  FLblDesktopColorHex.Caption := RgbAHex(FColorDesktop);
+  FSwDesktopColor1.Color := RgbATColor(FColorDesktop);
+  FLblDesktopColor1Hex.Caption := RgbAHex(FColorDesktop);
+  FSwDesktopColor2.Color := RgbATColor(FColorDesktop2);
+  FLblDesktopColor2Hex.Caption := RgbAHex(FColorDesktop2);
 
   FLblOpacidad.Caption := IntToStr(FTbOpacidad.Position) + ' %';
   FLblOpacidadTexto.Caption := IntToStr(FTbOpacidadTexto.Position) + ' %';
@@ -820,6 +1087,11 @@ var
   Ancho, Alto, BandH, Bt, Bw, Bx, By: Integer;
   Escala: Single;
   Br: TGPLinearGradientBrush;
+  Pincel: TGPSolidBrush;
+  Src: TGPImage;
+  Ruta: string;
+  Dw, Dh, Dx, Dy, TamanoTexto: Integer;
+  Dibujado: Boolean;
   Estilo: TBadgeStyle;
 begin
   R := FPbPreview.ClientRect;
@@ -834,13 +1106,69 @@ begin
     G.SetPixelOffsetMode(PixelOffsetModeHighQuality);
     G.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
 
-    Br := TGPLinearGradientBrush.Create(RF(0, 0, Ancho, Alto),
-      MakeColor(255, 30, 32, 42), MakeColor(255, 72, 76, 96), 35);
-    try
-      G.FillRectangle(Br, RF(0, 0, Ancho, Alto));
-    finally
-      Br.Free;
+    Dibujado := False;
+    if FondoEscritorio = dfOriginal then
+    begin
+      Ruta := DirectorioInstalacion + ArchivoFondoOriginal;
+      if FileExists(Ruta) then
+      begin
+        try
+          Src := TGPImage.Create(WideString(Ruta));
+          try
+            Escala := Max(Double(Ancho) / Src.GetWidth, Double(Alto) / Src.GetHeight);
+            Dw := Ceil(Src.GetWidth * Escala);
+            Dh := Ceil(Src.GetHeight * Escala);
+            Dx := (Ancho - Dw) div 2;
+            Dy := (Alto - Dh) div 2;
+            G.DrawImage(Src, Dx, Dy, Dw, Dh);
+            Dibujado := True;
+          finally
+            Src.Free;
+          end;
+        except
+          Dibujado := False;
+        end;
+      end;
     end;
+
+    if not Dibujado then
+    begin
+      if FondoEscritorio = dfSolido then
+      begin
+        Pincel := TGPSolidBrush.Create(ArgbDe(FColorDesktop, 255));
+        try
+          G.FillRectangle(Pincel, RF(0, 0, Ancho, Alto));
+        finally
+          Pincel.Free;
+        end;
+      end
+      else if FondoEscritorio = dfDegradado then
+      begin
+        Br := TGPLinearGradientBrush.Create(RF(0, 0, Ancho, Alto),
+          ArgbDe(FColorDesktop, 255), ArgbDe(FColorDesktop2, 255), 90);
+        try
+          G.FillRectangle(Br, RF(0, 0, Ancho, Alto));
+        finally
+          Br.Free;
+        end;
+      end
+      else
+      begin
+        Br := TGPLinearGradientBrush.Create(RF(0, 0, Ancho, Alto),
+          MakeColor(255, 30, 32, 42), MakeColor(255, 72, 76, 96), 35);
+        try
+          G.FillRectangle(Br, RF(0, 0, Ancho, Alto));
+        finally
+          Br.Free;
+        end;
+      end;
+    end;
+
+    TamanoTexto := Round(FSeDesktopTamano.Value * Alto / 1080);
+    if TamanoTexto < 8 then
+      TamanoTexto := 8;
+    DibujarTextoEscritorio(G, RF(0, 0, Ancho, Alto), FEdDesktopGrande.Text,
+      FEdDesktopPequeno.Text, FCbDesktopFuente.Text, TamanoTexto);
 
     if FChkBanda.Checked then
     begin

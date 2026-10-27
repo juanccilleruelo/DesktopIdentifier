@@ -9,7 +9,9 @@ between workspaces in DSH: the workspace is fixed when the session is created).
 > decisions in section 3 are closed (see the plan, section 12) and the real state
 > is in [FASE-1.md](FASE-1.md), [FASE-2.md](FASE-2.md) and [FASE-3.md](FASE-3.md).
 > This document is kept as a historical handover; where it says `DistintiveVM`,
-> the current name is `DesktopIdentifier`.
+> the current technical name is `DesktopIdentifier` and the visible product name
+> is **Desktop Identifier**. The later **Desktop** tab is documented in
+> [FASE-3.md](FASE-3.md), section 9.
 
 This document summarizes the state of the project and the decisions taken so
 that a new session here can continue without re-reading the whole previous

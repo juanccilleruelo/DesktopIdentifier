@@ -14,6 +14,8 @@ uses
   uUtils, uPaths;
 
 type
+  TDesktopFondo = (dfOriginal, dfSolido, dfDegradado);
+
   TSettings = record
     Version: Integer;
     // Cartel
@@ -36,6 +38,14 @@ type
     BandaTexto: string;
     BandaColorTexto: TRgb;
     BandaAlineacion: string;
+    // Escritorio
+    DesktopFondo: TDesktopFondo;
+    DesktopColor: TRgb;
+    DesktopColor2: TRgb;
+    DesktopTextoGrande: string;
+    DesktopTextoPequeno: string;
+    DesktopFuente: string;
+    DesktopTamano: Integer;
   end;
 
 function AjustesPorDefecto: TSettings;
@@ -71,6 +81,13 @@ begin
   Result.BandaTexto := '';
   Result.BandaColorTexto := RgbBlanco;
   Result.BandaAlineacion := 'derecha';
+  Result.DesktopFondo := dfOriginal;
+  Result.DesktopColor := $001473E6;
+  Result.DesktopColor2 := $002A9D8F;
+  Result.DesktopTextoGrande := '';
+  Result.DesktopTextoPequeno := '';
+  Result.DesktopFuente := 'Segoe UI';
+  Result.DesktopTamano := 72;
 end;
 
 function ColorPorTexto(const Texto: string): TRgb;
@@ -110,6 +127,13 @@ begin
      (Result.BandaAlineacion <> 'centro') and
      (Result.BandaAlineacion <> 'izquierda') then
     Result.BandaAlineacion := 'derecha';
+
+  Result.DesktopTextoGrande := Trim(Result.DesktopTextoGrande);
+  Result.DesktopTextoPequeno := Trim(Result.DesktopTextoPequeno);
+  Result.DesktopFuente := Trim(Result.DesktopFuente);
+  if Result.DesktopFuente = '' then
+    Result.DesktopFuente := 'Segoe UI';
+  Result.DesktopTamano := EnsureRange(Result.DesktopTamano, 24, 200);
 end;
 
 { Lee el archivo completo respetando el BOM (UTF-8 / UTF-16) y, si no hay
@@ -297,6 +321,31 @@ var
       else if (K = 'banda_alineacion') or ((Sec = 'banda') and (K = 'alineacion')) then
         Result.BandaAlineacion := Trim(V);
     end;
+
+    if Sec = 'desktop' then
+    begin
+      if K = 'fondo' then
+      begin
+        if LowerCase(Trim(V)) = 'solido' then
+          Result.DesktopFondo := dfSolido
+        else if LowerCase(Trim(V)) = 'degradado' then
+          Result.DesktopFondo := dfDegradado
+        else
+          Result.DesktopFondo := dfOriginal;
+      end
+      else if K = 'color' then
+        Result.DesktopColor := HexARgb(V, Result.DesktopColor)
+      else if K = 'color2' then
+        Result.DesktopColor2 := HexARgb(V, Result.DesktopColor2)
+      else if K = 'texto_grande' then
+        Result.DesktopTextoGrande := Trim(V)
+      else if K = 'texto_pequeno' then
+        Result.DesktopTextoPequeno := Trim(V)
+      else if K = 'fuente' then
+        Result.DesktopFuente := Trim(V)
+      else if K = 'tamano' then
+        Result.DesktopTamano := AEntero(V, Result.DesktopTamano);
+    end;
   end;
 
   procedure ProcesarLinea(const L: string);
@@ -361,7 +410,7 @@ begin
     ForceDirectories(ExtractFilePath(Archivo));
 
   T := '';
-  T := T + '; DesktopIdentifier configuration' + sLineBreak;
+  T := T + '; Desktop Identifier configuration' + sLineBreak;
   T := T + '; You can edit this file by hand. The host reloads it when it receives RELOAD.' + sLineBreak;
   T := T + sLineBreak;
   T := T + '[general]' + sLineBreak;
@@ -394,6 +443,20 @@ begin
   T := T + 'texto=' + A.BandaTexto + sLineBreak;
   T := T + 'color_texto=' + RgbAHex(A.BandaColorTexto) + sLineBreak;
   T := T + 'alineacion=' + A.BandaAlineacion + sLineBreak;
+  T := T + sLineBreak;
+  T := T + '[desktop]' + sLineBreak;
+  case A.DesktopFondo of
+    dfSolido: T := T + 'fondo=solido' + sLineBreak;
+    dfDegradado: T := T + 'fondo=degradado' + sLineBreak;
+  else
+    T := T + 'fondo=original' + sLineBreak;
+  end;
+  T := T + 'color=' + RgbAHex(A.DesktopColor) + sLineBreak;
+  T := T + 'color2=' + RgbAHex(A.DesktopColor2) + sLineBreak;
+  T := T + 'texto_grande=' + A.DesktopTextoGrande + sLineBreak;
+  T := T + 'texto_pequeno=' + A.DesktopTextoPequeno + sLineBreak;
+  T := T + 'fuente=' + A.DesktopFuente + sLineBreak;
+  T := T + 'tamano=' + IntToStr(A.DesktopTamano) + sLineBreak;
 
   Result := EscribirTextoAtomico(Archivo, T);
 end;

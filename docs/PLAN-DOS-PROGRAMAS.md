@@ -4,10 +4,11 @@
 **Date:** 24/10/2026
 **Project:** DesktopIdentifier (Delphi 12, Win32)
 
-> **Final names:** the product is called **DesktopIdentifier**; the executables
-> are `DesktopIdentifier.exe` (configurator) and `DesktopIdentifierHost.exe`
-> (startup). Where this document says `DistintiveVM` or `DistintiveVMHost`, read
-> DesktopIdentifier.
+> **Final names:** the visible product name is **Desktop Identifier**; technical
+> names keep the historical spelling: `DesktopIdentifier.exe` (configurator),
+> `DesktopIdentifierHost.exe` (startup), `%LOCALAPPDATA%\DesktopIdentifier\` and
+> the internal identifiers. Where this document says `DistintiveVM` or
+> `DistintiveVMHost`, read those technical names.
 
 ---
 
@@ -148,7 +149,7 @@ alineacion=derecha
 | `banda.color_sincronizado` | 0/1 | — | 1 = band color follows the badge color (default) |
 | `banda.color` | color | `#RRGGBB` | Used when synchronization is off |
 | `banda.alto` | real | 0.02–0.20 | Fraction of the screen height |
-| `banda.texto` | text | any text | Empty = no text |
+| `banda.texto` | text | any text | leave empty to hide the label |
 | `banda.color_texto` | color | `#RRGGBB` | White by default |
 | `banda.alineacion` | text | `derecha`, `centro`, `izquierda` | Text position |
 
@@ -369,6 +370,9 @@ Tasks:
 
 ### Phase 2 — Functional improvements
 
+> Phase 2 introduced the first two tabs (Badge and Band). The **Desktop** tab was
+> added in phase 3; see [FASE-3.md](FASE-3.md), section 9.
+
 Tasks:
 
 1. New keys and controls: band color, height, band text, text color, badge text.
@@ -396,6 +400,8 @@ Implemented; the details and evidence are in [FASE-2.md](FASE-2.md).
   stays hidden).
 - [x] UI localization (Spanish, English, French, Italian and German) from the
   Windows locale, including the host and the English INI/documentation.
+- [x] **Desktop** tab: original wallpaper, solid color or gradient, plus a large
+  centered label and a smaller label below, with selectable font and size.
 
 Implemented; the details are in [FASE-3.md](FASE-3.md). The tray icon, the
 gradient/shadow and the color copy between badge and band remain as optional

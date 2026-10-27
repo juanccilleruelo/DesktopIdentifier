@@ -4,6 +4,12 @@
 **Date:** 24/10/2026
 **Base:** [PLAN-DOS-PROGRAMAS.md](PLAN-DOS-PROGRAMAS.md)
 
+> **Note:** this phase describes the original two tabs (Badge and Band). The
+> **Desktop** tab, with original/solid/gradient backgrounds and two labels, was
+> added later; see [FASE-3.md](FASE-3.md), section 9. The visible product name is
+> now **Desktop Identifier**; technical filenames and paths keep
+> `DesktopIdentifier`.
+
 ---
 
 ## 1. What has been added

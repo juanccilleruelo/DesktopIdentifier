@@ -14,12 +14,16 @@ type
 
   TTextId = (
     txtAppTitle, txtSettings, txtMachineA, txtMachineB, txtSubtitle,
-    txtTabBadge, txtTabBand,
+    txtTabBadge, txtTabBand, txtTabDesktop,
     txtBadgeText, txtBadgeTextHint, txtPanelColor, txtTextColor, txtChange,
     txtSize, txtPanelOpacity, txtTextOpacity, txtCornerRadius, txtMargins,
     txtBandEnable, txtSyncColor, txtBandColor, txtBandHeight, txtBandText, txtBandTextHint,
     txtBandAlignment, txtAlignRight, txtAlignCenter, txtAlignLeft,
     txtBandNoteMonitors, txtBandNoteReapply,
+    txtBackground, txtBackgroundOriginal, txtBackgroundSolid, txtBackgroundGradient,
+    txtDesktopSolidColor, txtDesktopGradientColor1, txtDesktopGradientColor2,
+    txtDesktopTextLarge, txtDesktopTextSmall, txtDesktopFont,
+    txtDesktopFontSize, txtDesktopHint,
     txtInstall, txtApply, txtUninstall, txtReapply, txtCloseBadge, txtClose,
     txtRepair, txtUpdate, txtReinstall,
     txtNotInstalled, txtNotInstalledHint, txtInstalledHost, txtUpdateAvailable,
@@ -57,7 +61,7 @@ implementation
 const
   TABLA: array[TTextId, TLanguage] of string = (
     // txtAppTitle
-    ('DesktopIdentifier', 'DesktopIdentifier', 'DesktopIdentifier', 'DesktopIdentifier', 'DesktopIdentifier'),
+    ('Desktop Identifier', 'Desktop Identifier', 'Desktop Identifier', 'Desktop Identifier', 'Desktop Identifier'),
     // txtSettings
     ('Configuración', 'Settings', 'Paramètres', 'Impostazioni', 'Einstellungen'),
     // txtMachineA
@@ -74,6 +78,8 @@ const
     ('Cartel', 'Badge', 'Badge', 'Badge', 'Kennzeichen'),
     // txtTabBand
     ('Banda', 'Band', 'Bande', 'Banda', 'Band'),
+    // txtTabDesktop
+    ('Escritorio', 'Desktop', 'Bureau', 'Scrivania', 'Desktop'),
     // txtBadgeText
     ('Texto del cartel:', 'Badge text:', 'Texte du badge :', 'Testo del badge:', 'Kennzeichen-Text:'),
     // txtBadgeTextHint
@@ -134,6 +140,35 @@ const
      'Si vous changez le fond d’écran à la main, appuyez sur « Réappliquer la bande ».',
      'Se cambi lo sfondo a mano, premi «Riapplica banda».',
      'Wenn Sie das Hintergrundbild manuell ändern, drücken Sie „Band erneut anwenden“.'),
+    // txtBackground
+    ('Fondo', 'Background', 'Fond', 'Sfondo', 'Hintergrund'),
+    // txtBackgroundOriginal
+    ('Fondo original', 'Original wallpaper', 'Fond d’écran d’origine',
+     'Sfondo originale', 'Originales Hintergrundbild'),
+    // txtBackgroundSolid
+    ('Color sólido', 'Solid color', 'Couleur unie', 'Colore uniforme', 'Einfarbig'),
+    // txtBackgroundGradient
+    ('Degradado', 'Gradient', 'Dégradé', 'Sfumatura', 'Verlauf'),
+    // txtDesktopSolidColor
+    ('Color sólido:', 'Solid color:', 'Couleur unie :', 'Colore uniforme:', 'Einfarbige Farbe:'),
+    // txtDesktopGradientColor1
+    ('Primer color:', 'First color:', 'Première couleur :', 'Primo colore:', 'Erste Farbe:'),
+    // txtDesktopGradientColor2
+    ('Segundo color:', 'Second color:', 'Deuxième couleur :', 'Secondo colore:', 'Zweite Farbe:'),
+    // txtDesktopTextLarge
+    ('Rótulo grande:', 'Large label:', 'Libellé principal :', 'Etichetta grande:', 'Große Beschriftung:'),
+    // txtDesktopTextSmall
+    ('Rótulo pequeño:', 'Small label:', 'Libellé secondaire :', 'Etichetta piccola:', 'Kleine Beschriftung:'),
+    // txtDesktopFont
+    ('Fuente:', 'Font:', 'Police :', 'Carattere:', 'Schriftart:'),
+    // txtDesktopFontSize
+    ('Tamaño de letra:', 'Font size:', 'Taille de police :', 'Dimensione carattere:', 'Schriftgröße:'),
+    // txtDesktopHint
+    ('El rótulo grande se centra en el escritorio; el pequeño va debajo.',
+     'The large label is centered on the desktop; the small one goes below.',
+     'Le libellé principal est centré sur le bureau ; le secondaire va en dessous.',
+     'L’etichetta grande è centrata sul desktop; quella piccola va sotto.',
+     'Die große Beschriftung wird auf dem Desktop zentriert; die kleine steht darunter.'),
     // txtInstall
     ('Instalar', 'Install', 'Installer', 'Installa', 'Installieren'),
     // txtApply
@@ -295,9 +330,9 @@ const
      'Il programma di avvio verrà aggiornato da %s a %s. Il badge verrà chiuso e riaperto; la configurazione e l’avvio non cambieranno.',
      'Das Startprogramm wird von %s auf %s aktualisiert. Das Kennzeichen wird geschlossen und wieder geöffnet; Konfiguration und Autostart bleiben unverändert.'),
     // txtUninstallDialogCaption
-    ('Desinstalar DesktopIdentifier', 'Uninstall DesktopIdentifier',
-     'Désinstaller DesktopIdentifier', 'Disinstalla DesktopIdentifier',
-     'DesktopIdentifier deinstallieren'),
+    ('Desinstalar Desktop Identifier', 'Uninstall Desktop Identifier',
+     'Désinstaller Desktop Identifier', 'Disinstalla Desktop Identifier',
+     'Desktop Identifier deinstallieren'),
     // txtUninstallDialogTitle
     ('Desinstalar', 'Uninstall', 'Désinstaller', 'Disinstalla', 'Deinstallieren'),
     // txtUninstallDialogText
@@ -382,9 +417,9 @@ const
      'Impossibile salvare una copia dello sfondo originale.',
      'Eine Kopie des ursprünglichen Hintergrundbilds konnte nicht gespeichert werden.'),
     // txtGenerateBandFailed
-    ('No se pudo generar la imagen de la banda.', 'Could not generate the band image.',
-     'Impossible de générer l’image de la bande.', 'Impossibile generare l’immagine della banda.',
-     'Das Bandbild konnte nicht erzeugt werden.'),
+    ('No se pudo generar la imagen del escritorio.', 'Could not generate the desktop image.',
+     'Impossible de générer l’image du bureau.', 'Impossibile generare l’immagine del desktop.',
+     'Das Desktop-Bild konnte nicht erzeugt werden.'),
     // txtApplyWallpaperFailed
     ('No se pudo aplicar el fondo de pantalla.', 'Could not apply the wallpaper.',
      'Impossible d’appliquer le fond d’écran.', 'Impossibile applicare lo sfondo.',
@@ -406,8 +441,8 @@ const
      'Disinstallato completamente. Sfondo originale ripristinato.',
      'Vollständig deinstalliert. Ursprüngliches Hintergrundbild wiederhergestellt.'),
     // txtHostWindowTitle
-    ('DesktopIdentifier — Cartel', 'DesktopIdentifier — Badge', 'DesktopIdentifier — Badge',
-     'DesktopIdentifier — Badge', 'DesktopIdentifier — Kennzeichen'),
+    ('Desktop Identifier — Cartel', 'Desktop Identifier — Badge', 'Desktop Identifier — Badge',
+     'Desktop Identifier — Badge', 'Desktop Identifier — Kennzeichen'),
     // txtHostStartError
     ('No se pudo iniciar el cartel.', 'The badge could not be started.',
      'Impossible de démarrer le badge.', 'Impossibile avviare il badge.',

@@ -335,7 +335,9 @@ begin
     Exit;
   end;
 
-  if Ajustes.BandaActiva then
+  if Ajustes.BandaActiva or (Ajustes.DesktopFondo <> dfOriginal) or
+     (Trim(Ajustes.DesktopTextoGrande) <> '') or
+     (Trim(Ajustes.DesktopTextoPequeno) <> '') then
   begin
     if not PrepararOriginal(Dir) then
     begin

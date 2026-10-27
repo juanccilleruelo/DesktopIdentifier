@@ -4,8 +4,9 @@
 
 Two cloned VMs usually share the same wallpaper, icons and window layout. It is
 easy to run a command, delete a file or open a browser in the wrong one.
-Desktop Identifier marks the desktop with a permanent color band and a floating
-badge, so the answer is visible without thinking.
+Desktop Identifier marks the desktop with a permanent color band, a floating
+badge and optional large/small desktop labels, so the answer is visible without
+thinking.
 
 **[Download the installer](dist/DesktopIdentifier-Setup.exe)** · Windows 10/11 ·
 per-user, no administrator rights.
@@ -24,8 +25,9 @@ desktop.*
   desktop is full of windows.
 - **No extra window in the way:** the badge is click-through, so you can keep
   working underneath it.
-- **Two independent marks:** use a color band, a badge, or both. A blue `A` for
-  one VM and an orange `B` for the other is a good start.
+- **Three independent marks:** use the top band, the floating badge, the large
+  and small desktop labels, or any combination. A blue `A` for one VM and an
+  orange `B` for the other is a good start.
 - **Every session:** the badge starts with Windows and the band is part of the
   wallpaper, so the mark is there before you open anything.
 - **Useful for QA, support, training, demos and remote sessions**, where two
@@ -64,15 +66,39 @@ By default the **band color follows the badge color**. The Band tab has a
 color controls are disabled and the band always matches the badge. Uncheck it
 to choose a different color for the band.
 
+### The desktop background and label
+
+The **Desktop** tab changes what is behind the band and the badge:
+
+- **Original wallpaper:** keeps the user's current wallpaper and saves a copy
+  of it for uninstall.
+- **Solid color:** fills the desktop with the selected color.
+- **Gradient:** blends two selected colors from top to bottom.
+
+Any of the three can show two labels: a large one centered on the desktop and a
+smaller one below it. Choose the font family and the base font size; the small
+label is derived from it (42 % of the large size) so both look proportional.
+Both labels are white with a soft shadow and are optional: leave a field empty
+to omit that line. The band, if enabled, is drawn on top of the labels.
+
+The original wallpaper is copied before the first custom desktop is applied and
+is restored when the application is uninstalled. This is true for all three
+background types, not only for *Original wallpaper*. The result is one composed
+wallpaper, so Windows repeats it on every monitor, like the band.
+
+![Desktop label](docs/capturas/resultado-desktop.png)
+
 ## Features
 
 - **Band** at the top of the desktop: color, height, text, text color and
   alignment; part of the wallpaper and repeated on every monitor.
 - **Floating badge**: any text, automatic width, panel and text colors, size,
   opacities, corners and margins; click-through and always on top.
+- **Desktop tab**: original wallpaper, solid color or gradient, plus a large
+  centered label and a smaller label below, with selectable font and size.
 - **Color synchronization** between badge and band, on by default.
-- **Faithful preview** on two tabs (Badge and Band), with the same GDI+ renderer
-  used by the host.
+- **Faithful preview** on three tabs (Badge, Band and Desktop), using the same
+  GDI+ renderers as the host and the wallpaper generator.
 - **Five UI languages**: Spanish, English, French, Italian and German, chosen at
   startup from the Windows locale.
 - **Automatic startup** with the Windows session.
@@ -90,6 +116,10 @@ to choose a different color for the band.
    `%LOCALAPPDATA%\Programs\Desktop Identifier` and does not need administrator
    rights.
 3. Open **Desktop Identifier** from the Start menu.
+
+The visible product name is **Desktop Identifier**. Executable filenames, the
+data folder and the internal names keep the historical `DesktopIdentifier`
+spelling; only user-facing text uses the spaced name.
 
 The setup registers the application in Windows *Installed apps* and creates a
 Start menu shortcut. **Only the configurator appears in those places.** The
@@ -111,9 +141,11 @@ data.
    default), the band uses the same color.
 4. In the **Band** tab, enable the band, enter the label you want (for example
    `MACHINE A`), and choose its height and alignment.
-5. Press **Apply**. The band is written to the wallpaper and the badge is
-   reloaded.
-6. Close the configurator. The badge stays on screen and starts automatically
+5. In the **Desktop** tab, choose the original wallpaper, a solid color or a
+   gradient, and optionally enter the large and small labels.
+6. Press **Apply**. The band, background and labels are written to the wallpaper
+   and the badge is reloaded.
+7. Close the configurator. The badge stays on screen and starts automatically
    with Windows.
 
 The status line at the bottom of the window shows whether the host is installed,
@@ -121,8 +153,8 @@ whether startup is active and whether the badge is running.
 
 ## Settings
 
-The two tabs use a bold, slightly larger caption so they are easy to find, while
-the controls keep the normal application font.
+The three tabs use a bold, slightly larger caption so they are easy to find,
+while the controls keep the normal application font.
 
 | Badge tab | Band tab |
 |---|---|
@@ -135,10 +167,48 @@ text opacity, corner radius, right/bottom margins and monitor.
 (no length limit; the font is reduced if the band is too narrow), text color and
 alignment.
 
+**Desktop:**
+
+![Desktop settings](docs/capturas/desktop.png)
+
+Choose **original wallpaper**, **solid color** or **gradient**. For a solid color
+there is one color; for a gradient there are two, blended from top to bottom.
+Both labels are optional: the large one is centered on the desktop and the small
+one is placed below it. The font family and base size apply to both; the small
+label is scaled down proportionally. The large label is scaled to the screen
+resolution. The labels are white with a shadow, and the band is drawn on top of
+them.
+
+## Configuration file
+
 The configurator saves changes to
 `%LOCALAPPDATA%\DesktopIdentifier\desktopidentifier.ini` with atomic writes. The
 host re-reads it when it receives the `DesktopIdentifier_RELOAD` message, so
-**Apply** does not restart the host.
+**Apply** does not restart the host. The Desktop tab uses this section:
+
+```ini
+[desktop]
+fondo=original
+color=#1473E6
+color2=#2A9D8F
+texto_grande=
+texto_pequeno=
+fuente=Segoe UI
+tamano=72
+```
+
+| Key | Values | Meaning |
+|---|---|---|
+| `fondo` | `original`, `solido`, `degradado` | Background type |
+| `color` | `#RRGGBB` | Solid color, or first gradient color |
+| `color2` | `#RRGGBB` | Second gradient color |
+| `texto_grande` | any text | Large label; empty means no line |
+| `texto_pequeno` | any text | Small label; empty means no line |
+| `fuente` | font family | Default `Segoe UI` |
+| `tamano` | 24–200 | Large label size at 1080p; scaled to the screen |
+
+The small label uses 42 % of `tamano`. The values are validated while loading;
+an empty font falls back to `Segoe UI` and the size is clamped to the range.
 
 ## Languages
 
@@ -176,13 +246,15 @@ There are two programs:
 
 | Program | Executable | Role |
 |---|---|---|
-| Configurator | `DesktopIdentifier.exe` | Settings window, band generation, installation and uninstallation |
+| Configurator | `DesktopIdentifier.exe` | Settings window, desktop composition, band generation, installation and uninstallation |
 | Startup program | `DesktopIdentifierHost.exe` | Only the floating badge; Win32 without VCL |
 
-**The band** is generated by the configurator at the real screen resolution,
-added to a copy of the original wallpaper and applied with
-`SystemParametersInfo(SPI_SETDESKWALLPAPER)`. The original wallpaper is saved in
-`fondo-original.dat` / `fondo-original.ini` and restored on uninstall.
+**The desktop** is composed by the configurator at the real screen resolution.
+It uses the saved original wallpaper, a solid color or a two-color gradient,
+then draws the two labels (large centered, small below) and the band before
+applying the image with `SystemParametersInfo(SPI_SETDESKWALLPAPER)`. The
+original wallpaper is saved in `fondo-original.dat` / `fondo-original.ini` and
+restored on uninstall.
 
 **The badge** is a layered Win32 window
 (`WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE`,
@@ -206,7 +278,7 @@ The application data lives in `%LOCALAPPDATA%\DesktopIdentifier`:
 ```
 desktopidentifier.ini     settings
 DesktopIdentifierHost.exe installed startup program
-fondo-distintivo.png      wallpaper with the band
+fondo-distintivo.png      wallpaper with the band and desktop labels
 fondo-original.dat/.ini   copy and data of the original wallpaper
 ```
 
@@ -226,7 +298,7 @@ Compilar.cmd --no-pause
 This builds:
 
 ```
-bin\DesktopIdentifierHost.exe   ~470 KB   (without VCL)
+bin\DesktopIdentifierHost.exe   ~480 KB   (without VCL)
 bin\DesktopIdentifier.exe       ~3.0 MB   (VCL, configurator + icon)
 ```
 
@@ -253,7 +325,13 @@ docs\         plan, phase notes and screenshots
 ## Limitations
 
 - The band is part of the wallpaper, so it is the same on every monitor. If you
-  change the wallpaper by hand, the band disappears; press **Reapply band**.
+  change the wallpaper by hand, the band disappears; press **Reapply band**,
+  which rebuilds it from the saved original wallpaper. The same happens to the
+  **Desktop** background and labels when the selected background is the original
+  wallpaper.
+- The **Desktop** background and labels are also part of the wallpaper. The
+  labels are white with a shadow; they are designed to read on the colors and
+  wallpapers shown in the preview.
 - In exclusive full-screen applications the badge may be hidden.
 - The host has no tray icon or window of its own; it is managed from the
   configurator.

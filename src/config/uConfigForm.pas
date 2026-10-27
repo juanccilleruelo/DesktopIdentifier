@@ -67,6 +67,7 @@ type
     FColorTextoBanda: TRgb;
     FColorPersonalizado: Boolean;
     FAjustes: TSettings;
+    FHIconSmall: HICON;
     procedure CrearControles;
     procedure CrearTabCartel;
     procedure CrearTabBanda;
@@ -104,8 +105,12 @@ type
     procedure MostrarEstadoInicial;
     procedure ActualizarDesdeUi;
     function ConfirmarActualizacion(const VInstalada, VDisponible: string): Boolean;
+  protected
+    procedure CreateParams(var Params: TCreateParams); override;
+    procedure CreateWnd; override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   end;
 
 implementation
@@ -137,8 +142,16 @@ constructor TConfigForm.Create(AOwner: TComponent);
 begin
   inherited CreateNew(AOwner, 0);
 
+  try
+    Icon.LoadFromResourceName(HInstance, 'MAINICON');
+  except
+    // sin icono propio: se usa el predeterminado
+  end;
+  ShowInTaskbar := True;
+
   Caption := 'DesktopIdentifier - Configuración';
-  BorderStyle := bsDialog;
+  BorderStyle := bsSingle;
+  BorderIcons := [biSystemMenu, biMinimize];
   ClientWidth := 620;
   ClientHeight := 764;
   Position := poScreenCenter;
@@ -156,6 +169,43 @@ begin
   ActualizarVista;
   RefrescarEstadoInstalacion;
   MostrarEstadoInicial;
+end;
+
+procedure TConfigForm.CreateParams(var Params: TCreateParams);
+begin
+  inherited;
+  // El configurador es una ventana normal: icono y boton en la barra de tareas.
+  Params.ExStyle := (Params.ExStyle or WS_EX_APPWINDOW) and not WS_EX_TOOLWINDOW;
+end;
+
+procedure TConfigForm.CreateWnd;
+var
+  H: HICON;
+begin
+  inherited;
+  if FHIconSmall <> 0 then
+  begin
+    DestroyIcon(FHIconSmall);
+    FHIconSmall := 0;
+  end;
+  if Icon.Handle = 0 then
+    Exit;
+  SendMessage(Handle, WM_SETICON, ICON_BIG, Icon.Handle);
+  H := LoadImage(HInstance, 'MAINICON', IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
+  if H <> 0 then
+  begin
+    FHIconSmall := H;
+    SendMessage(Handle, WM_SETICON, ICON_SMALL, H);
+  end
+  else
+    SendMessage(Handle, WM_SETICON, ICON_SMALL, Icon.Handle);
+end;
+
+destructor TConfigForm.Destroy;
+begin
+  if FHIconSmall <> 0 then
+    DestroyIcon(FHIconSmall);
+  inherited;
 end;
 
 function TConfigForm.ColorAutomatico: Boolean;

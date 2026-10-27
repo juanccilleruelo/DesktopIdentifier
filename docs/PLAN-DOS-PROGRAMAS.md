@@ -391,6 +391,8 @@ Implementada; el detalle y las evidencias están en [FASE-2.md](FASE-2.md).
 - [x] Detección de instalaciones huérfanas y botón de reparación.
 - [x] Documentación final (README) y capturas.
 - [x] Revisión de tamaño/memoria y limpieza de código muerto.
+- [x] Icono propio del configurador y presencia en la barra de tareas (el host
+  sigue oculto).
 
 Implementada; el detalle está en [FASE-3.md](FASE-3.md). Quedan como opcionales
 el icono en la bandeja, el degradado/sombra y la copia de color entre cartel y

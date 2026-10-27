@@ -103,7 +103,7 @@ de 700 × 120 px: el texto se reduce y queda completo, con márgenes y centrado.
 | | Tamaño | RAM |
 |---|---|---|
 | Host 1.1.0.0 | **440.320 B** | working set ~0,9 MB; privada ~3,2 MB |
-| Configurador 1.1.0.0 | **2.693.120 B** | VCL, solo al abrirse |
+| Configurador 1.1.0.0 | **3.075.072 B** | VCL, solo al abrirse |
 
 La actualización sustituyó el host Debug de 2,76 MB por el Release de 440 KB.
 
@@ -117,10 +117,36 @@ Las capturas de la ventana final están en
 
 ---
 
-## 6. Pendiente (opcional)
+## 6. Cambios posteriores — icono y barra de tareas (27/10/2026)
+
+El configurador pasa a comportarse como un programa normal en la barra de
+tareas; el host no cambia.
+
+- Se añadió `src/config/DesktopIdentifier.ico` (16, 20, 24, 32, 40, 48, 64,
+  128 y 256 px; 381.038 B) y se incrustó como `MAINICON` **solo** en
+  `ConfigResources.rc`.
+- La ventana pasó de `bsDialog` a `bsSingle` con
+  `BorderIcons := [biSystemMenu, biMinimize]`. El motivo es que
+  `TCustomForm.CreateWnd` de VCL borra expresamente el icono cuando el
+  `BorderStyle` es `bsDialog`.
+- Se fuerza `WS_EX_APPWINDOW` y se activa `ShowInTaskbar`; en `CreateWnd` se
+  fijan `WM_SETICON` con el icono grande y con una variante de 16 px para el
+  título.
+- El host sigue siendo `WS_EX_TOOLWINDOW`, sin `APPWINDOW`, sin icono propio y
+  sin botón en la barra de tareas.
+
+Comprobaciones: `WM_GETICON` grande y pequeño distintos de cero,
+`WS_EX_APPWINDOW` activo, sin `WS_MAXIMIZEBOX` ni `WS_THICKFRAME`, y el botón
+con el icono visible en la barra de tareas. El configurador mide ahora
+**3.075.072 B**; el host sigue en **440.320 B**. La versión no cambia
+(1.1.0.0), porque el host no se ha tocado.
+
+---
+
+## 7. Pendiente (opcional)
 
 - Icono en la bandeja o menú del host.
 - Degradado/sombra de la banda y copia de color entre cartel y banda.
-- Firma digital / icono propio de los ejecutables.
+- Firma digital e icono propio del host, si se quiere.
 
 La lista obligatoria de la fase 3 está cerrada.

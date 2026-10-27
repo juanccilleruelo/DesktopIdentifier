@@ -55,6 +55,15 @@ fondo-original.dat/.ini   copia y datos del fondo original del usuario
 pone en marcha. A partir de ahí, **Aplicar** solo escribe el INI y el fondo:
 **no vuelve a copiar el host ni toca el registro**.
 
+### Icono y barra de tareas
+
+- El configurador es una ventana normal: icono propio (la «D» sobre el azul de
+  la marca), botón en la barra de tareas y botón de minimizar.
+- El host sigue siendo una ventana de herramientas: sin icono ni botón en la
+  barra de tareas, como antes.
+- El icono está en `src/config/DesktopIdentifier.ico` y se incrusta como
+  `MAINICON` solo en el configurador.
+
 ---
 
 ## Compilar
@@ -70,7 +79,7 @@ Salida:
 
 ```
 bin\DesktopIdentifierHost.exe   ~430 KB   (sin VCL)
-bin\DesktopIdentifier.exe       ~2,6 MB   (VCL, configurador)
+bin\DesktopIdentifier.exe       ~2,9 MB   (VCL, configurador + icono)
 ```
 
 `HostResources.rc` y `ConfigResources.rc` contienen el manifiesto y la versión.
@@ -273,7 +282,7 @@ lee y escribe con la API de Win32 y los ajustes usan un registro propio.
 | | Tamaño | RAM |
 |---|---|---|
 | Host (Release) | **440.320 B** (~430 KB) | working set ~0,3 MB; privada ~3,2 MB |
-| Configurador (Release) | **2.693.120 B** (~2,6 MB) | VCL, solo al abrirse |
+| Configurador (Release) | **3.075.072 B** (~2,9 MB) | VCL, solo al abrirse |
 | Versión anterior (un solo VCL) | ~2,6 MB | ~14,5 MB siempre en memoria |
 
 Sin el recorte de working set, el host muestra ~11 MB de working set por las

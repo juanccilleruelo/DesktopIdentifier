@@ -62,10 +62,11 @@ square and `DESKTOP-A` becomes a wide pill that shows the whole word.
 ### The repository and branch line
 
 If you set a **Repository folder** in the Badge tab, the badge gets a second,
-smaller line:
+smaller line. For example, with the repository at
+`C:\Views\senCilleAssist` on branch `main`:
 
 ```text
-DesktopIdentifier:  With-Branch-Identifying
+senCilleAssist:  main
 ```
 
 - It shows the **last folder name** of the repository and the **current branch**.
@@ -228,7 +229,7 @@ optional repository folder:
 ```ini
 [cartel]
 texto=A
-repo=C:\Views\DesktopIdentifier
+repo=C:\Views\senCilleAssist
 ```
 
 `repo` is the repository root; leave it empty to hide the second line. The branch

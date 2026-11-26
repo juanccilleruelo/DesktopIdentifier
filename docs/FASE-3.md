@@ -269,8 +269,8 @@ from `With-Branch-Identifying` to `Other-Branch` and the badge updated within th
 timer interval; the Badge tab Apply persisted `cartel.repo`.
 
 Sizes: configurator **3,156,992 B**, host **496,640 B**, installer
-`dist\DesktopIdentifier-Setup.exe` **3,260,120 B**
-(SHA-256 `667682B9640901AFE373EEC7A5988A961589D9DCFA339B7EB460C3F47D080AB3`).
+`dist\DesktopIdentifier-Setup.exe` **3,260,034 B**
+(SHA-256 `F35879BE34EB1A22764913D0C093E83729458DF97BD43DD8B6B5327FA7856BE3`).
 The version remains 1.1.0.0.
 
 ---

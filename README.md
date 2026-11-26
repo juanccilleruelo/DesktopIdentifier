@@ -69,6 +69,13 @@ smaller line. For example, with the repository at
 senCilleAssist:  main
 ```
 
+If the checkout is detached at an old commit, the line changes:
+
+```text
+senCilleAssist:  v1.2.3          (the commit has a tag)
+senCilleAssist:  main: 1a2b3c4   (no tag; branch and short hash)
+```
+
 - It shows the **last folder name** of the repository and the **current branch**.
 - The separator is a colon followed by two spaces.
 - The second line uses **30 % of the first line's size**, in **Consolas**.
@@ -78,16 +85,19 @@ senCilleAssist:  main
   the branch line is present, and the second line sits at the bottom, so the box
   stays compact.
 - The badge widens to fit both lines.
-- The branch is read from `.git/HEAD`; Git does not have to be installed and no
-  `git.exe` process is launched.
+- A normal branch is read from `.git/HEAD`; Git does not have to be installed and
+  no `git.exe` process is launched.
+- For a **detached** commit, the app first looks for an exact tag. If none exists,
+  it finds the branch that contains the commit (normally `main`) and appends the
+  short hash. This lookup uses `git.exe` when available; without Git it falls back
+  to `main: <short-hash>`. The old `(detached)` text is no longer shown.
 - The host checks the branch every few seconds, so switching branches updates
   the badge without reopening the configurator.
 - With no repository folder, the badge looks exactly as before, with one line.
 
 The folder must be the repository root (the folder that contains `.git`). If the
 path is moved or deleted, the second line disappears and the main text remains.
-A detached HEAD shows `(detached) <short-hash>`; a repository without a readable
-branch shows `(sin rama)`.
+A repository without a readable branch shows `(sin rama)`.
 
 ![Badge with repository line](docs/capturas/resultado-cartel.png)
 
@@ -233,7 +243,8 @@ repo=C:\Views\senCilleAssist
 ```
 
 `repo` is the repository root; leave it empty to hide the second line. The branch
-itself is not stored: the host resolves it from `.git/HEAD` every few seconds.
+itself is not stored: the host resolves it from `.git/HEAD` (and, for a detached
+commit, uses `git.exe` for the tag/branch lookup) every few seconds.
 The Desktop tab uses this section:
 
 ```ini
@@ -314,10 +325,11 @@ with `UpdateLayeredWindow`. A timer reasserts the topmost order and repositions
 the badge if the monitor, the work area or the DPI changes.
 
 **The repository line** is resolved by the host from the folder in `cartel.repo`.
-It reads `.git/HEAD` directly (no `git.exe`, no console, no Git installation
-required) and rebuilds the second line as `<folder>:  <branch>`. The host uses
-its 3-second timer to notice a branch change and redraw the badge; it does not
-write the branch back to the INI.
+It reads `.git/HEAD` directly for normal branches (no `git.exe`, no console, no
+Git installation required). For a detached commit it uses `git.exe` when
+available to find an exact tag or the containing branch, and otherwise falls
+back to `main: <short-hash>`. The host uses its 3-second timer to notice a branch
+change and redraw the badge; it does not write the branch back to the INI.
 
 The host does not use VCL. It reads the INI with the Win32 API and keeps the
 settings in its own record; linking `System.Classes` would make the executable

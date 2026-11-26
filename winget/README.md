@@ -8,7 +8,7 @@ Manifest for submitting **Desktop Identifier** to the
 > `dist\DesktopIdentifier-Setup.exe`, update `InstallerUrl` to the new committed
 > setup and replace `InstallerSha256` with its hash, or publish a new version.
 > The local setup built with the Desktop tab and the branch line has SHA-256
-> `F35879BE34EB1A22764913D0C093E83729458DF97BD43DD8B6B5327FA7856BE3`; it is not
+> `CE095A90A2DED6ED969B4C1484A5CF440C3185FD8E92C445F0B4669C60608E21`; it is not
 > public until it is committed.
 
 | | |

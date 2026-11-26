@@ -103,8 +103,8 @@ band: the text is reduced and remains complete, with margins and centered.
 
 | | Size | RAM |
 |---|---|---|
-| Host 1.1.0.0 | **496,640 B** | working set ~0.9 MB; private ~3.2 MB |
-| Configurator 1.1.0.0 | **3,156,992 B** | VCL, only when opened |
+| Host 1.1.0.0 | **499,200 B** | working set ~0.9 MB; private ~3.2 MB |
+| Configurator 1.1.0.0 | **3,159,552 B** | VCL, only when opened |
 
 The update replaced the 2.76 MB Debug host with the 440 KB Release one. The
 localization change later added the language tables; see section 7.
@@ -255,22 +255,30 @@ measures **3,148,800 B**; the host **491,008 B**. The screenshot is
   present, and the second line sits at the bottom. The badge widens to the
   maximum of both lines.
 - `src/common/uGitBranch.pas` reads `.git/HEAD` directly. It supports a `.git`
-  directory and a `.git` file (`gitdir:` for worktrees/submodules), returns
-  `(detached) <short-hash>` for a detached HEAD and `(sin rama)` when the
-  repository has no readable branch. No `git.exe` is required.
+  directory and a `.git` file (`gitdir:` for worktrees/submodules) and returns
+  `(sin rama)` when the repository has no readable branch.
+- For a **detached HEAD** the old `(detached) <hash>` text was replaced:
+  `git describe --tags --exact-match` / `git tag --points-at` is checked first;
+  if the commit has a tag, the tag is shown. Otherwise `git branch --contains`
+  selects the containing branch (preferring `main`) and the line shows
+  `main: <short-hash>`. If Git is not available, it falls back to
+  `main: <short-hash>`. Normal branch display still does not run `git.exe`.
 - The host resolves the line at startup, on reload and on its 3-second timer; if
   the branch changes it resizes/redraws the layered window. It never writes the
-  branch to the INI.
+  branch to the INI. Detached results are cached by repository path and HEAD
+  value, so Git is not launched every timer tick.
 - The configurator preview resolves the same line through the shared unit.
 
 Checks: the current branch `With-Branch-Identifying` produced
 `DesktopIdentifier:  With-Branch-Identifying`; a temporary repository changed
 from `With-Branch-Identifying` to `Other-Branch` and the badge updated within the
-timer interval; the Badge tab Apply persisted `cartel.repo`.
+timer interval; the Badge tab Apply persisted `cartel.repo`. A detached test
+commit with tag `v9.9.9` showed `di-tag-test:  v9.9.9`; without the tag it showed
+`di-tag-test:  main: 26bedfa4`.
 
-Sizes: configurator **3,156,992 B**, host **496,640 B**, installer
-`dist\DesktopIdentifier-Setup.exe` **3,260,034 B**
-(SHA-256 `F35879BE34EB1A22764913D0C093E83729458DF97BD43DD8B6B5327FA7856BE3`).
+Sizes: configurator **3,159,552 B**, host **499,200 B**, installer
+`dist\DesktopIdentifier-Setup.exe` **3,263,304 B**
+(SHA-256 `CE095A90A2DED6ED969B4C1484A5CF440C3185FD8E92C445F0B4669C60608E21`).
 The version remains 1.1.0.0.
 
 ---

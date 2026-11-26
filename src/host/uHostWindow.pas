@@ -15,7 +15,7 @@ implementation
 uses
   Winapi.Messages, Winapi.MultiMon, System.SysUtils, System.Math, System.Types,
   Winapi.GDIPAPI, Winapi.GDIPOBJ,
-  uPaths, uSettings, uUtils, uBadgeRender, Languages;
+  uPaths, uSettings, uUtils, uBadgeRender, uGitBranch, Languages;
 
 const
   TIMER_REPOSICIONAR   = 1;
@@ -26,6 +26,8 @@ var
   FVentana: HWND = 0;
   FTimer: UINT_PTR = 0;
   FAjustes: TSettings;
+  FTextoSecundario: string = '';
+  FAltoBase: Integer = 0;
   FMensajeRecarga: Cardinal = 0;
   FMensajeSalir: Cardinal = 0;
   GMonitores: array[0..15] of HMONITOR;
@@ -96,9 +98,10 @@ var
   Dpi: Cardinal;
   Escala: Single;
   X, Y: Integer;
-  Ancho, Alto: Integer;
+  Ancho, Alto, AltoBase: Integer;
   WR: TRect;
   Cambio: Boolean;
+  Texto2: string;
 begin
   if FVentana = 0 then
     Exit;
@@ -110,17 +113,26 @@ begin
   if not GetMonitorInfo(Mon, @Info) then
     Exit;
 
+  Texto2 := TextoRepositorio(FAjustes.Repo);
+  if Texto2 <> FTextoSecundario then
+  begin
+    FTextoSecundario := Texto2;
+    Forzar := True;
+  end;
+
   Dpi := DpiDeMonitor(Mon);
   if Dpi = 0 then
     Dpi := DpiDeVentana(FVentana);
   Escala := Dpi / 96;
 
-  Alto := Round(FAjustes.Tamano * Escala);
-  if Alto < 24 then
-    Alto := 24;
-  Ancho := AnchoDistintivo(FAjustes.Texto, FAjustes.Fuente, Alto);
-  if Ancho < Alto then
-    Ancho := Alto;
+  AltoBase := Round(FAjustes.Tamano * Escala);
+  if AltoBase < 24 then
+    AltoBase := 24;
+  Alto := AltoDistintivo(AltoBase, FTextoSecundario);
+  Ancho := AnchoDistintivo(FAjustes.Texto, FTextoSecundario, FAjustes.Fuente, AltoBase);
+  if Ancho < AltoBase then
+    Ancho := AltoBase;
+  FAltoBase := AltoBase;
 
   X := Info.rcWork.Right - Round(FAjustes.MargenDerecha * Escala) - Ancho;
   Y := Info.rcWork.Bottom - Round(FAjustes.MargenInferior * Escala) - Alto;
@@ -169,13 +181,14 @@ begin
   AsegurarEstilos;
 
   Estilo.Texto := FAjustes.Texto;
+  Estilo.TextoSecundario := FTextoSecundario;
   Estilo.Color := FAjustes.Color;
   Estilo.ColorTexto := FAjustes.ColorTexto;
   Estilo.OpacidadPanel := FAjustes.OpacidadPanel;
   Estilo.OpacidadLetra := FAjustes.OpacidadLetra;
   Estilo.Esquinas := FAjustes.Esquinas;
   Estilo.Fuente := FAjustes.Fuente;
-  Estilo.Tamano := Alto;
+  Estilo.Tamano := FAltoBase;
 
   Bmp := TGPBitmap.Create(Ancho, Alto, PixelFormat32bppARGB);
   try

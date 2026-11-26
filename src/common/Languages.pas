@@ -15,7 +15,8 @@ type
   TTextId = (
     txtAppTitle, txtSettings, txtMachineA, txtMachineB, txtSubtitle,
     txtTabBadge, txtTabBand, txtTabDesktop,
-    txtBadgeText, txtBadgeTextHint, txtPanelColor, txtTextColor, txtChange,
+    txtBadgeText, txtRepoFolder, txtBrowse, txtBadgeTextHint, txtPanelColor,
+    txtTextColor, txtChange,
     txtSize, txtPanelOpacity, txtTextOpacity, txtCornerRadius, txtMargins,
     txtBandEnable, txtSyncColor, txtBandColor, txtBandHeight, txtBandText, txtBandTextHint,
     txtBandAlignment, txtAlignRight, txtAlignCenter, txtAlignLeft,
@@ -82,6 +83,11 @@ const
     ('Escritorio', 'Desktop', 'Bureau', 'Scrivania', 'Desktop'),
     // txtBadgeText
     ('Texto del cartel:', 'Badge text:', 'Texte du badge :', 'Testo del badge:', 'Kennzeichen-Text:'),
+    // txtRepoFolder
+    ('Carpeta del repositorio:', 'Repository folder:', 'Dossier du dépôt :',
+     'Cartella del repository:', 'Repository-Ordner:'),
+    // txtBrowse
+    ('Examinar…', 'Browse…', 'Parcourir…', 'Sfoglia…', 'Durchsuchen…'),
     // txtBadgeTextHint
     ('Sin límite', 'No limit', 'Sans limite', 'Senza limite', 'Kein Limit'),
     // txtPanelColor

@@ -13,9 +13,9 @@ per-user, no administrator rights.
 
 ![Desktop preview](docs/capturas/resultado.png)
 
-*Preview: a blue **MACHINE A** band at the top and the floating **A** badge at
-the bottom right. The band is part of the wallpaper; the badge floats above the
-desktop.*
+*Preview: a blue **MACHINE A** band, the **BACKEND / ENTORNO BACKEND** desktop
+labels and the floating **A** badge with the repository and branch line. The band
+and labels are part of the wallpaper; the badge floats above the desktop.*
 
 ---
 
@@ -59,6 +59,37 @@ The badge text has **no length limit**. The box widens horizontally to fit the
 text; a single character keeps the classic square shape. For example, `A` stays
 square and `DESKTOP-A` becomes a wide pill that shows the whole word.
 
+### The repository and branch line
+
+If you set a **Repository folder** in the Badge tab, the badge gets a second,
+smaller line:
+
+```text
+DesktopIdentifier:  With-Branch-Identifying
+```
+
+- It shows the **last folder name** of the repository and the **current branch**.
+- The separator is a colon followed by two spaces.
+- The second line uses **30 % of the first line's size**, in **Consolas**.
+- It is **white with a black outline and a shadow**, so it reads on any panel
+  color.
+- The badge keeps its configured height. The first line is slightly smaller when
+  the branch line is present, and the second line sits at the bottom, so the box
+  stays compact.
+- The badge widens to fit both lines.
+- The branch is read from `.git/HEAD`; Git does not have to be installed and no
+  `git.exe` process is launched.
+- The host checks the branch every few seconds, so switching branches updates
+  the badge without reopening the configurator.
+- With no repository folder, the badge looks exactly as before, with one line.
+
+The folder must be the repository root (the folder that contains `.git`). If the
+path is moved or deleted, the second line disappears and the main text remains.
+A detached HEAD shows `(detached) <short-hash>`; a repository without a readable
+branch shows `(sin rama)`.
+
+![Badge with repository line](docs/capturas/resultado-cartel.png)
+
 ### One color or two
 
 By default the **band color follows the badge color**. The Band tab has a
@@ -94,6 +125,8 @@ wallpaper, so Windows repeats it on every monitor, like the band.
   alignment; part of the wallpaper and repeated on every monitor.
 - **Floating badge**: any text, automatic width, panel and text colors, size,
   opacities, corners and margins; click-through and always on top.
+- **Repository line**: optional second line with the repository folder name and
+  the current Git branch, updated while the badge runs.
 - **Desktop tab**: original wallpaper, solid color or gradient, plus a large
   centered label and a smaller label below, with selectable font and size.
 - **Color synchronization** between badge and band, on by default.
@@ -137,15 +170,18 @@ data.
 1. Open **Desktop Identifier**.
 2. In the **Badge** tab, type the text you want (`A`, `B`, `VM-1`, a machine
    name, anything). The preview updates as you type.
-3. Pick a panel color. If **Synchronize badge and band colors** is checked (the
+3. If you want the repository line, enter the repository root in
+   **Repository folder** (or use the `...` button). The second line shows
+   `<folder>:  <branch>` and updates by itself.
+4. Pick a panel color. If **Synchronize badge and band colors** is checked (the
    default), the band uses the same color.
-4. In the **Band** tab, enable the band, enter the label you want (for example
+5. In the **Band** tab, enable the band, enter the label you want (for example
    `MACHINE A`), and choose its height and alignment.
-5. In the **Desktop** tab, choose the original wallpaper, a solid color or a
+6. In the **Desktop** tab, choose the original wallpaper, a solid color or a
    gradient, and optionally enter the large and small labels.
-6. Press **Apply**. The band, background and labels are written to the wallpaper
+7. Press **Apply**. The band, background and labels are written to the wallpaper
    and the badge is reloaded.
-7. Close the configurator. The badge stays on screen and starts automatically
+8. Close the configurator. The badge stays on screen and starts automatically
    with Windows.
 
 The status line at the bottom of the window shows whether the host is installed,
@@ -161,7 +197,9 @@ while the controls keep the normal application font.
 | ![Badge settings](docs/capturas/cartel.png) | ![Band settings](docs/capturas/banda.png) |
 
 **Badge:** text (no length limit), panel color, text color, size, panel opacity,
-text opacity, corner radius, right/bottom margins and monitor.
+text opacity, corner radius, right/bottom margins and monitor. The
+**Repository folder** field adds the optional second line with the folder name
+and the current Git branch.
 
 **Band:** enable/disable, color (or synchronized with the badge), height, text
 (no length limit; the font is reduced if the band is too narrow), text color and
@@ -184,7 +222,18 @@ them.
 The configurator saves changes to
 `%LOCALAPPDATA%\DesktopIdentifier\desktopidentifier.ini` with atomic writes. The
 host re-reads it when it receives the `DesktopIdentifier_RELOAD` message, so
-**Apply** does not restart the host. The Desktop tab uses this section:
+**Apply** does not restart the host. The Badge tab stores the main text and the
+optional repository folder:
+
+```ini
+[cartel]
+texto=A
+repo=C:\Views\DesktopIdentifier
+```
+
+`repo` is the repository root; leave it empty to hide the second line. The branch
+itself is not stored: the host resolves it from `.git/HEAD` every few seconds.
+The Desktop tab uses this section:
 
 ```ini
 [desktop]
@@ -199,6 +248,7 @@ tamano=72
 
 | Key | Values | Meaning |
 |---|---|---|
+| `cartel.repo` | folder path | Repository root for the second badge line; empty disables it |
 | `fondo` | `original`, `solido`, `degradado` | Background type |
 | `color` | `#RRGGBB` | Solid color, or first gradient color |
 | `color2` | `#RRGGBB` | Second gradient color |
@@ -262,6 +312,12 @@ restored on uninstall.
 with `UpdateLayeredWindow`. A timer reasserts the topmost order and repositions
 the badge if the monitor, the work area or the DPI changes.
 
+**The repository line** is resolved by the host from the folder in `cartel.repo`.
+It reads `.git/HEAD` directly (no `git.exe`, no console, no Git installation
+required) and rebuilds the second line as `<folder>:  <branch>`. The host uses
+its 3-second timer to notice a branch change and redraw the badge; it does not
+write the branch back to the INI.
+
 The host does not use VCL. It reads the INI with the Win32 API and keeps the
 settings in its own record; linking `System.Classes` would make the executable
 grow above 1 MB. The result is a small background process that spends most of
@@ -298,8 +354,8 @@ Compilar.cmd --no-pause
 This builds:
 
 ```
-bin\DesktopIdentifierHost.exe   ~480 KB   (without VCL)
-bin\DesktopIdentifier.exe       ~3.0 MB   (VCL, configurator + icon)
+bin\DesktopIdentifierHost.exe   ~490 KB   (without VCL)
+bin\DesktopIdentifier.exe       ~3.1 MB   (VCL, configurator + icon)
 ```
 
 To build the Windows installer:
@@ -315,7 +371,7 @@ produce `dist\DesktopIdentifier-Setup.exe`. The installer script is
 The project is organized as:
 
 ```
-src\common\   shared units (paths, settings, badge rendering, languages)
+src\common\   shared units (paths, settings, badge rendering, Git branch, languages)
 src\config\   configurator (VCL), band renderer, wallpaper, install, version
 src\host\     startup program and layered window (no VCL)
 installer\    Inno Setup script
@@ -332,6 +388,9 @@ docs\         plan, phase notes and screenshots
 - The **Desktop** background and labels are also part of the wallpaper. The
   labels are white with a shadow; they are designed to read on the colors and
   wallpapers shown in the preview.
+- The **Repository folder** must contain a readable `.git` (or a `.git` file for
+  a worktree/submodule). If the folder is moved or deleted, the second badge line
+  disappears; the main text remains. A long branch name widens the badge.
 - In exclusive full-screen applications the badge may be hidden.
 - The host has no tray icon or window of its own; it is managed from the
   configurator.

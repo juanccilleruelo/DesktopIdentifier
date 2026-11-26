@@ -103,8 +103,8 @@ band: the text is reduced and remains complete, with margins and centered.
 
 | | Size | RAM |
 |---|---|---|
-| Host 1.1.0.0 | **491,008 B** | working set ~0.9 MB; private ~3.2 MB |
-| Configurator 1.1.0.0 | **3,148,800 B** | VCL, only when opened |
+| Host 1.1.0.0 | **496,640 B** | working set ~0.9 MB; private ~3.2 MB |
+| Configurator 1.1.0.0 | **3,156,992 B** | VCL, only when opened |
 
 The update replaced the 2.76 MB Debug host with the 440 KB Release one. The
 localization change later added the language tables; see section 7.
@@ -242,7 +242,40 @@ measures **3,148,800 B**; the host **491,008 B**. The screenshot is
 
 ---
 
-## 11. Pending (optional)
+## 11. Later changes — repository and branch line (25/11/2026)
+
+- The Badge tab has a **Repository folder** field (with a folder picker). The
+  path is stored as `cartel.repo`; empty means no second line.
+- When the path is valid, the badge shows a second line:
+  `<last repository folder name>:  <current branch>`. The separator is a colon
+  and two spaces.
+- The second line uses 30 % of the first line's font size, in **Consolas**.
+  It is **white with a black outline and a shadow**. The badge keeps its
+  configured height; the first line is slightly reduced when the branch line is
+  present, and the second line sits at the bottom. The badge widens to the
+  maximum of both lines.
+- `src/common/uGitBranch.pas` reads `.git/HEAD` directly. It supports a `.git`
+  directory and a `.git` file (`gitdir:` for worktrees/submodules), returns
+  `(detached) <short-hash>` for a detached HEAD and `(sin rama)` when the
+  repository has no readable branch. No `git.exe` is required.
+- The host resolves the line at startup, on reload and on its 3-second timer; if
+  the branch changes it resizes/redraws the layered window. It never writes the
+  branch to the INI.
+- The configurator preview resolves the same line through the shared unit.
+
+Checks: the current branch `With-Branch-Identifying` produced
+`DesktopIdentifier:  With-Branch-Identifying`; a temporary repository changed
+from `With-Branch-Identifying` to `Other-Branch` and the badge updated within the
+timer interval; the Badge tab Apply persisted `cartel.repo`.
+
+Sizes: configurator **3,156,992 B**, host **496,640 B**, installer
+`dist\DesktopIdentifier-Setup.exe` **3,260,120 B**
+(SHA-256 `667682B9640901AFE373EEC7A5988A961589D9DCFA339B7EB460C3F47D080AB3`).
+The version remains 1.1.0.0.
+
+---
+
+## 12. Pending (optional)
 
 - Tray icon or host menu.
 - Band gradient/shadow and color copy between badge and band.

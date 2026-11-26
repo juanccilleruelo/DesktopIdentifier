@@ -20,6 +20,7 @@ type
     Version: Integer;
     // Cartel
     Texto: string;
+    Repo: string;
     Color: TRgb;
     ColorTexto: TRgb;
     Tamano: Integer;
@@ -64,6 +65,7 @@ function AjustesPorDefecto: TSettings;
 begin
   Result.Version := VersionAjustes;
   Result.Texto := 'A';
+  Result.Repo := '';
   Result.Color := $001473E6;
   Result.ColorTexto := RgbBlanco;
   Result.Tamano := 170;
@@ -106,6 +108,7 @@ begin
   Result.Texto := Trim(Result.Texto);
   if Result.Texto = '' then
     Result.Texto := 'A';
+  Result.Repo := Trim(Result.Repo);
 
   Result.Fuente := Trim(Result.Fuente);
   if Result.Fuente = '' then
@@ -278,6 +281,8 @@ var
     begin
       if (K = 'texto') or (K = 'letra') then
         Result.Texto := Trim(V)
+      else if K = 'repo' then
+        Result.Repo := Trim(V)
       else if K = 'color' then
         Result.Color := HexARgb(V, Result.Color)
       else if K = 'color_texto' then
@@ -418,6 +423,7 @@ begin
   T := T + sLineBreak;
   T := T + '[cartel]' + sLineBreak;
   T := T + 'texto=' + A.Texto + sLineBreak;
+  T := T + 'repo=' + A.Repo + sLineBreak;
   T := T + 'color=' + RgbAHex(A.Color) + sLineBreak;
   T := T + 'color_texto=' + RgbAHex(A.ColorTexto) + sLineBreak;
   T := T + 'tamano=' + IntToStr(A.Tamano) + sLineBreak;

@@ -10,8 +10,8 @@ uses
   Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
   Vcl.Samples.Spin, Vcl.Dialogs, Vcl.Graphics,
   Winapi.GDIPAPI, Winapi.GDIPOBJ,
-  uPaths, uSettings, uUtils, uBadgeRender, uBandRender, uInstall, uVersion,
-  Languages;
+  uPaths, uSettings, uUtils, uBadgeRender, uBandRender, uGitBranch, uInstall,
+  uVersion, Languages;
 
 type
   TConfigForm = class(TForm)
@@ -25,6 +25,9 @@ type
     FTabEscritorio: TTabSheet;
     // Cartel
     FEdTexto: TEdit;
+    FLblRepo: TLabel;
+    FEdRepo: TEdit;
+    FBtnRepo: TButton;
     FSwCartel: TPanel;
     FLblCartelHex: TLabel;
     FBtnCartelColor: TButton;
@@ -106,6 +109,8 @@ type
     procedure PintarVista(Sender: TObject);
     procedure AjustarFuentesPestanas(AControl: TWinControl);
     procedure TextoCambiado(Sender: TObject);
+    procedure CambioRepo(Sender: TObject);
+    procedure ElegirRepo(Sender: TObject);
     procedure CambiarColorCartel(Sender: TObject);
     procedure CambiarColorTexto(Sender: TObject);
     procedure CambiarColorBanda(Sender: TObject);
@@ -415,6 +420,26 @@ begin
   FEdTexto.Text := FAjustes.Texto;
   FEdTexto.SetBounds(122, 13, 80, 24);
   FEdTexto.OnChange := TextoCambiado;
+
+  FLblRepo := TLabel.Create(Self);
+  FLblRepo.Parent := FTabCartel;
+  FLblRepo.Caption := Texto(txtRepoFolder);
+  FLblRepo.SetBounds(205, 17, 130, 18);
+
+  FEdRepo := TEdit.Create(Self);
+  FEdRepo.Parent := FTabCartel;
+  FEdRepo.MaxLength := 0;
+  FEdRepo.Text := FAjustes.Repo;
+  FEdRepo.SetBounds(338, 13, 160, 24);
+  FEdRepo.OnChange := CambioRepo;
+
+  FBtnRepo := TButton.Create(Self);
+  FBtnRepo.Parent := FTabCartel;
+  FBtnRepo.Caption := '...';
+  FBtnRepo.Hint := Texto(txtBrowse);
+  FBtnRepo.ShowHint := True;
+  FBtnRepo.SetBounds(504, 11, 64, 28);
+  FBtnRepo.OnClick := ElegirRepo;
 
   L := TLabel.Create(Self);
   L.Parent := FTabCartel;
@@ -996,6 +1021,7 @@ function TConfigForm.AjustesDeUi: TSettings;
 begin
   Result := FAjustes;
   Result.Texto := TextoUi;
+  Result.Repo := Trim(FEdRepo.Text);
   if Result.Texto = '' then
     Result.Texto := 'A';
   Result.Color := FColor;
@@ -1034,6 +1060,7 @@ begin
   if T = '' then
     T := '?';
   Result.Texto := T;
+  Result.TextoSecundario := TextoRepositorio(FEdRepo.Text);
   Result.Color := FColor;
   Result.ColorTexto := FColorTexto;
   Result.OpacidadPanel := FTbOpacidad.Position / 100;
@@ -1084,7 +1111,7 @@ procedure TConfigForm.PintarVista(Sender: TObject);
 var
   G: TGPGraphics;
   R: TRect;
-  Ancho, Alto, BandH, Bt, Bw, Bx, By: Integer;
+  Ancho, Alto, BandH, Bt, BtTotal, Bw, Bx, By: Integer;
   Escala: Single;
   Br: TGPLinearGradientBrush;
   Pincel: TGPSolidBrush;
@@ -1180,25 +1207,30 @@ begin
     end;
 
     Estilo := EstiloActual;
-    Bt := Round(60 * FSeTamano.Value / 170);
-    if Bt < 36 then
-      Bt := 36;
-    if Bt > 90 then
-      Bt := 90;
-    Bw := AnchoDistintivo(Estilo.Texto, Estilo.Fuente, Bt);
+    Bt := Round(45 * FSeTamano.Value / 170);
+    if Bt < 30 then
+      Bt := 30;
+    if Bt > 60 then
+      Bt := 60;
+    BtTotal := AltoDistintivo(Bt, Estilo.TextoSecundario);
+    Bw := AnchoDistintivo(Estilo.Texto, Estilo.TextoSecundario, Estilo.Fuente, Bt);
     if Bw > Ancho - 28 then
     begin
       Escala := (Ancho - 28) / Bw;
       Bt := Round(Bt * Escala);
       if Bt < 20 then
         Bt := 20;
-      Bw := Ancho - 28;
+      BtTotal := AltoDistintivo(Bt, Estilo.TextoSecundario);
+      Bw := AnchoDistintivo(Estilo.Texto, Estilo.TextoSecundario, Estilo.Fuente, Bt);
+      if Bw > Ancho - 28 then
+        Bw := Ancho - 28;
     end;
+    Estilo.Tamano := Bt;
     Bx := Ancho - Bw - 14;
-    By := Alto - Bt - 12;
+    By := Alto - BtTotal - 12;
 
     G.SetSmoothingMode(SmoothingModeAntiAlias);
-    DibujarDistintivo(G, RF(Bx, By, Bw, Bt), Estilo);
+    DibujarDistintivo(G, RF(Bx, By, Bw, BtTotal), Estilo);
   finally
     G.Free;
   end;
@@ -1214,6 +1246,26 @@ begin
       FColor := ColorPorTexto('B');
   end;
   ActualizarVista;
+end;
+
+procedure TConfigForm.CambioRepo(Sender: TObject);
+begin
+  FPbPreview.Invalidate;
+end;
+
+procedure TConfigForm.ElegirRepo(Sender: TObject);
+var
+  Dlg: TFileOpenDialog;
+begin
+  Dlg := TFileOpenDialog.Create(Self);
+  try
+    Dlg.Title := Texto(txtRepoFolder);
+    Dlg.Options := [fdoPickFolders, fdoPathMustExist];
+    if Dlg.Execute then
+      FEdRepo.Text := Dlg.FileName;
+  finally
+    Dlg.Free;
+  end;
 end;
 
 function TConfigForm.ElegirColor(var C: TRgb): Boolean;
